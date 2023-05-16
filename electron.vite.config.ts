@@ -9,11 +9,14 @@ export default defineConfig({
   preload: {
     plugins: [externalizeDepsPlugin()]
   },
+
   renderer: {
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
-        '@atoms': resolve('src/renderer/src/components/atoms/')
+        '@atoms': resolve('src/renderer/src/components/atoms'),
+        '@template': resolve('src/renderer/src/components/template'),
+        '@store': resolve('src/renderer/src/store')
       }
     },
     plugins: [vue()]

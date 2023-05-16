@@ -28,6 +28,7 @@ const onEvent = (e: PointerEvent) => {
 
 <style lang="less" scoped>
 .btn-wrap {
+  padding: 20px;
   border: 2px rgba(0, 0, 0, 0.3) solid;
   background-color: beige;
 }

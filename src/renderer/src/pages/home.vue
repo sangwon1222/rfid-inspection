@@ -1,50 +1,38 @@
 <script setup lang="ts">
 import aButton from '@atoms/aButton.vue'
 import { reactive, computed } from 'vue'
-import AExcelButton from '../components/atoms/aExcelButton.vue'
-
-interface IFileTypes {
-  id: number // 파일들의 고유값 id
-  object: File
-}
+import loadExcel from '@template/loadExcel.vue'
+import XLSX from 'xlsx'
 
 const state = reactive({
   currentJob: 'startScan',
-  label: computed(() => list[state.currentJob].label)
+  label: computed(() => list[state.currentJob].label),
+  excelData: []
 })
-
 const list = {
   startScan: { label: '작업 시작' },
   waitExcel: { label: '엑셀을 로드해주세요.' },
   excelLoad: { label: '엑셀 로드' }
 }
 
-const startScan = () => {
-  state.currentJob = 'waitExcel'
-  console.log(state.currentJob)
-}
+const startScan = () => (state.currentJob = 'waitExcel')
 
-const dropIn = (e: DragEvent) => {
-  console.log(e.dataTransfer.files)
-}
+const changeExcel = async (data: { [key: string]: string }) => (state.excelData = data)
 </script>
 
 <template>
-  <div class="wrap">
+  <div class="home-wrap">
     <a-button :label="state.label" @on-parent-event="startScan" />
-    <a-excel-button
-      v-if="state.currentJob === 'waitExcel'"
-      label="Drag & Drop a excel file"
-      @drop-in="dropIn"
-    />
+    <div v-if="state.currentJob === 'waitExcel'">
+      <load-excel @change-excel="changeExcel" />
+    </div>
   </div>
 </template>
 
 <style lang="less" scoped>
-.wrap {
-  position: relative;
+.home-wrap {
   display: flex;
-  padding: 6rem 0 0;
+  padding: 6rem 0 0 0;
   flex-wrap: wrap;
   flex-direction: column;
   align-items: center;
