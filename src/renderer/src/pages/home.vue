@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import aButton from '@atoms/aButton.vue'
 import { reactive, computed } from 'vue'
+import AExcelButton from '../components/atoms/aExcelButton.vue'
+
+interface IFileTypes {
+  id: number // 파일들의 고유값 id
+  object: File
+}
 
 const state = reactive({
   currentJob: 'startScan',
@@ -17,27 +23,20 @@ const startScan = () => {
   state.currentJob = 'waitExcel'
   console.log(state.currentJob)
 }
-const dropInTag = (e) => {
-  console.log(e)
-}
-const dropInputTag = (e) => {
-  console.log(e)
+
+const dropIn = (e: DragEvent) => {
+  console.log(e.dataTransfer.files)
 }
 </script>
 
 <template>
   <div class="wrap">
     <a-button :label="state.label" @on-parent-event="startScan" />
-    <div
+    <a-excel-button
       v-if="state.currentJob === 'waitExcel'"
-      class="dragAndDrop"
-      draggable
-      @dragenter.prevent="dropInTag($event)"
-      @drop.prevent="dropInputTag($event)"
-      @dragover.prevent
-    >
-      엑셀 파일 업로드
-    </div>
+      label="Drag & Drop a excel file"
+      @drop-in="dropIn"
+    />
   </div>
 </template>
 
@@ -50,16 +49,5 @@ const dropInputTag = (e) => {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
-  .dragAndDrop {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    top: 200px;
-    border: 2px rgba(255, 255, 255, 0.3) solid;
-    width: 400px;
-    height: 400px;
-    border-radius: 40px;
-  }
 }
 </style>
