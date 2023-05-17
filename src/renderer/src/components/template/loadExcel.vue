@@ -1,10 +1,9 @@
-<script setup lang="ts">
+<script setup lang="ts" scoped>
 import AExcelButton from '@atoms/aExcelButton.vue'
 import XLSX from 'xlsx'
-import { excel } from '@store/excel'
 import { reactive } from 'vue'
 import { computed } from 'vue'
-// const { ipcRenderer } = require('electron')
+import { excel } from '@store/excel'
 
 const emit = defineEmits(['changeExcel'])
 const state = reactive({
@@ -17,26 +16,28 @@ const updateExcel = async (e: DragEvent | Event) => {
   e.stopPropagation()
   e.preventDefault()
 
-  const files = (e.target as any).files
-  console.log(e.target)
+  const files = e.type === 'drop' ? (e as DragEvent).dataTransfer.files : (e.target as any).files
   if (!files.length) return
   const file = files[0]
+
+  if (e.type === 'drop') {
+    const input = document.getElementById('xlf') as HTMLInputElement
+    input.files = files
+  }
 
   console.time('load excel')
   const reader = new FileReader()
   reader.onloadend = async () => {
     const arrayBuffer = reader.result
-    // debugger
-
     const workbook = XLSX.read(arrayBuffer, { type: 'array' })
 
     const sheetName = workbook.SheetNames[0]
     const sheet = workbook.Sheets[sheetName]
-    const exceldata = XLSX.utils.sheet_to_json(sheet)
-    excel.data = exceldata
+    const excelData = XLSX.utils.sheet_to_json(sheet)
+    excel.data = excelData
 
     console.timeEnd('load excel')
-    emit('changeExcel', exceldata)
+    emit('changeExcel', excelData)
     state.isExcelUpdated = true
     setTimeout(() => {
       changeGrid()
@@ -49,72 +50,57 @@ const deleteExcelData = () => {
   state.isExcelUpdated = false
   excel.data = []
   const input = document.getElementById('xlf') as HTMLInputElement
-  console.log(input)
-  console.log(input.value)
   input.value = ''
 }
 
 const changeGrid = () => {
-  const tag = document.getElementsByClassName('grid')
-  for (let i = 0; i < tag.length; i++) {
-    const target = tag[i] as HTMLUListElement
-    target.style.gridTemplateColumns = `repeat(${state.excelHeader.length}, 1fr)`
-  }
+  // const header = document.getElementById('grid-header') as HTMLUListElement
+  // header.classList.remove('grid')
+  // header.classList.add(`grid`)
+  // header.classList.add(`grid-cols-${state.excelHeader.length}`)
+  // const data = document.getElementsByClassName('grid-data')
+  // for (let i = 0; i < data.length; i++) {
+  //   const d = data[i] as HTMLUListElement
+  //   console.log(d.classList)
+  //   d.classList.remove('grid')
+  //   d.classList.add(`grid`)
+  //   d.classList.add(`grid-cols-${state.excelHeader.length}`)
+  // }
 }
 </script>
 
 <template>
-  <div class="load-excel-wrap">
+  <div class="col-grid gap-2">
     <div>
       <input id="xlf" type="file" name="xlfile" @change="updateExcel" />
       <button v-if="state.isExcelUpdated" @click="deleteExcelData">DELETE EXCEL</button>
     </div>
+
     <AExcelButton
       v-if="!state.isExcelUpdated"
       label="Drag & Drop a excel file"
       @drop-in="updateExcel"
     />
-    <div v-if="state.isExcelUpdated">
-      <ul class="grid header">
-        <li v-for="(v, i) in state.excelHeader" :key="i">{{ v }}</li>
+
+    <div v-if="state.isExcelUpdated" class="table">
+      <ul id="grid-header" class="table-row">
+        <li
+          v-for="(v, i) in state.excelHeader"
+          :key="i"
+          class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 border table-cell break-all max-w-200"
+        >
+          {{ v }}
+        </li>
       </ul>
-      <ul v-for="(v, i) in state.excelData" :key="i" class="grid">
-        <li v-for="(value, index) in v" :key="index">{{ value }}</li>
+      <ul v-for="(v, i) in state.excelData" :key="i" class="grid-data table-row">
+        <li
+          v-for="(value, index) in v"
+          :key="index"
+          class="border py-5 pr-10 pl-2 table-cell break-all max-w-200"
+        >
+          {{ value }}
+        </li>
       </ul>
     </div>
   </div>
 </template>
-
-<style lang="less" scoped>
-.load-excel-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  animation: fadeIn 1s forwards;
-  > li {
-    padding: 0.5rem;
-    border: 1px #fff solid;
-  }
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.header {
-  > li {
-    padding: 1rem 0.5rem;
-    background-color: bisque;
-    color: #000;
-  }
-}
-</style>

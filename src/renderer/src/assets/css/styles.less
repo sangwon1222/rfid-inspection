@@ -1,3 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.col-grid{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+}
+
 body {
   display: flex;
   flex-direction: column;
@@ -15,6 +26,11 @@ body {
 ul li ,ol li{
   list-style: none;
 }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
 button {
   padding: 10px;
@@ -23,10 +39,10 @@ button {
   border: 1px solid #86a5b1;
   background: none;
   color: #86a5b1;
-  font-weight: 800;
+  font-weight: 600;
   box-shadow: none;
   cursor: pointer;
-  letter-spacing: -0.1rem;
+  letter-spacing: -0.05rem;
 }
 
 code {

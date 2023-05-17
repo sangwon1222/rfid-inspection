@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" scoped>
 import { reactive } from 'vue'
 
 const emit = defineEmits(['onParentEvent'])

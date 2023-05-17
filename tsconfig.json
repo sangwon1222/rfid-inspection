@@ -10,6 +10,6 @@
     "noEmit": true,
     "baseUrl": "./src",
   },
-  "include": ["src", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "include": ["src", "src/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

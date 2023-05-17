@@ -1,8 +1,8 @@
-<script setup lang="ts">
+<script setup lang="ts" scoped>
 import aButton from '@atoms/aButton.vue'
 import { reactive, computed } from 'vue'
 import loadExcel from '@template/loadExcel.vue'
-import XLSX from 'xlsx'
+import idroController from '@template/idroController.vue'
 
 const state = reactive({
   currentJob: 'startScan',
@@ -15,27 +15,21 @@ const list = {
   excelLoad: { label: '엑셀 로드' }
 }
 
-const startScan = () => (state.currentJob = 'waitExcel')
+const startScan = () => {
+  state.currentJob = 'waitExcel'
+}
 
 const changeExcel = async (data: { [key: string]: string }) => (state.excelData = data)
 </script>
 
 <template>
-  <div class="home-wrap">
+  <div class="col-grid flex-wrap pt-10 gap-10">
+    <idro-controller class="fixed top-10 right-10" />
+
     <a-button :label="state.label" @on-parent-event="startScan" />
+
     <div v-if="state.currentJob === 'waitExcel'">
       <load-excel @change-excel="changeExcel" />
     </div>
   </div>
 </template>
-
-<style lang="less" scoped>
-.home-wrap {
-  display: flex;
-  padding: 6rem 0 0 0;
-  flex-wrap: wrap;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-</style>

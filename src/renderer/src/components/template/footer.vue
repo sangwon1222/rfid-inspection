@@ -1,4 +1,4 @@
-<script setup lang="ts"></script>
+<script setup lang="ts" scoped></script>
 
 <template>
   <div class="wrap">footer</div>
