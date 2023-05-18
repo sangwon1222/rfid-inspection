@@ -1,17 +1,21 @@
 <script setup lang="ts" scoped>
+import { print } from '../../store/print'
+
 const emit = defineEmits(['antenna'])
 const list = [1, 2, 3, 4]
 
-const onEnter = (e: KeyboardEvent, index: number) => {
+const onEnter = (e: KeyboardEvent) => {
   e.preventDefault()
   const target = e.target as HTMLInputElement
   const list = target.form.elements
 
+  const atnInfo = []
   let isFindNextInput = false
-  const inputs = { target: {} }
   for (let i = 0; i < list.length; i++) {
     const nextInput = list[i] as HTMLInputElement
-    inputs.target[nextInput.name] = nextInput
+    if (+nextInput.value > 1) nextInput.value = '1'
+    if (+nextInput.value < 0) nextInput.value = '0'
+    atnInfo.push(+nextInput.value)
     if (nextInput.tabIndex === target.tabIndex + 1) {
       nextInput.select()
       isFindNextInput = true
@@ -20,14 +24,15 @@ const onEnter = (e: KeyboardEvent, index: number) => {
   }
 
   if (!isFindNextInput) {
-    emit('antenna', inputs)
+    print.atnInfo = atnInfo
+    emit('antenna')
   }
 }
 </script>
 
 <template>
   <div class="atn-input-wrap">
-    <form id="antenna-form" class="flex gap-1 justify-center" @submit="emit('antenna', $event)">
+    <form id="antenna-form" class="flex gap-1 justify-center">
       <input
         v-for="(v, i) of list"
         :key="i"
@@ -39,8 +44,8 @@ const onEnter = (e: KeyboardEvent, index: number) => {
         required
         :tabIndex="i"
         :value="`${v === 1 ? 1 : 0}`"
-        @keydown.enter="onEnter($event, i)"
-        @keydown.tab="onEnter($event, i)"
+        @keydown.enter="onEnter($event)"
+        @keydown.tab="onEnter($event)"
       />
     </form>
   </div>

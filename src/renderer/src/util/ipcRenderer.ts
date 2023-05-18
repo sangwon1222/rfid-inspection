@@ -13,15 +13,9 @@ class CustomIpcRenderer {
     })
   }
 
-  async antenna(e: SubmitEvent) {
-    if (!e) return
-    const atn1 = +e.target['atn1'].value
-    const atn2 = +e.target['atn2'].value
-    const atn3 = +e.target['atn3'].value
-    const atn4 = +e.target['atn4'].value
-
+  async antenna() {
+    const [atn1, atn2, atn3, atn4] = print.atnInfo
     if (!atn1 && !atn2 && !atn3 && !atn4) {
-      e.target['atn1'].select()
       return console.log('안테나 값 채워주세요.')
     }
 

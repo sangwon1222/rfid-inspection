@@ -6,15 +6,13 @@ import aAtnInput from '@atoms/aAtnInput.vue'
 import aButton from '@atoms/aButton.vue'
 import { print } from '../../store/print'
 
-const emit = defineEmits(['move-pop-up'])
+const emit = defineEmits(['drag-pop-up', 'start-drag-pop-up', 'stop-drag-pop-up'])
 const controllerRef = ref(null)
 const state = reactive({
   isFold: false,
   height: 0,
   status: computed(() => print.connect),
-  statusMsg: computed(() => print.connectMsg),
-  dragStart: false,
-  dragLayer: { x: 0, y: 0 }
+  statusMsg: computed(() => print.connectMsg)
 })
 
 onMounted(async () => {
@@ -28,56 +26,30 @@ const fold = () => {
   const wrapDiv = controllerRef.value as HTMLDivElement
   if (state.isFold) {
     wrapDiv.style.height = `${state.height}px`
-    wrapDiv.style.width = `180px`
   } else {
-    wrapDiv.style.width = `24px`
     wrapDiv.style.height = `24px`
   }
   state.isFold = !state.isFold
 }
-
 const dragStart = (e) => {
-  state.dragLayer = { x: e.layerX, y: e.layerY }
-  state.dragStart = true
-}
-const dragStop = () => {
-  state.dragStart = false
-}
-// const dragging = (e: MouseEvent | TouchEvent) => {
-const dragging = (e: any) => {
-  if (!state.dragStart) return
-  console.log(e)
-  const pos =
-    e.type === 'mousemove'
-      ? { x: e.pageX - state.dragLayer.x, y: e.pageY - state.dragLayer.y }
-      : { x: e.touches[0].pageX - state.dragLayer.x, y: e.touches[0].pageY - state.dragLayer.y }
-  emit('move-pop-up', controllerRef.value, pos)
+  emit('start-drag-pop-up', { x: e.layerX, y: e.layerY })
 }
 </script>
 
 <template>
-  <div
-    ref="controllerRef"
-    class="overflow-hidden transition-all whitespace-nowrap bg-white w-180"
-    @mouseup="dragStop"
-    @mouseout="dragStop"
-    @touchend="dragStop"
-    @touchcancel="dragStop"
-    @mousemove="dragging"
-    @touchmove="dragging"
-  >
+  <div ref="controllerRef" class="overflow-hidden transition-all whitespace-nowrap bg-white w-180">
     <div
-      class="flex justify-between items-center px-1 mb-2 w-full h-6 bg-gray-500 cursor-pointer"
+      class="flex justify-between items-center px-1 mb-2 w-full h-6 bg-gray-400 cursor-pointer"
       @mousedown="dragStart"
       @touchstart="dragStart"
     >
-      <div class="overflow-hidden" :class="state.isFold ? 'w-0' : ''">
+      <div class="overflow-hidden">
         <p class="text-sm" :class="state.status ? 'text-white' : 'text-red-800'">
           {{ state.statusMsg }}
         </p>
       </div>
       <a-button
-        custom-style="w-4 h-4 p-0 flex justify-center items-center border"
+        custom-style="w-4 h-4 p-2 flex justify-center items-center border text-white"
         label="-"
         @click="fold"
       />
@@ -107,14 +79,12 @@ const dragging = (e: any) => {
         @on-parent-event="CustomIpcRenderer.onPowerGainWeek"
       />
 
-      <a-button
-        add-style="flex flex-col gap-2 w-full"
-        label="ANTENNA"
-        @on-parent-event="CustomIpcRenderer.antenna"
-      >
+      <div class="flex flex-col gap-2 text-center border border-gray-400 p-4 rounded-xl w-full">
+        ANTENNA
         <a-atn-input @antenna="CustomIpcRenderer.antenna" />
-        <button form="antenna-form" type="submit" class="cursor-pointer">set</button>
-      </a-button>
+        <a-button add-style="w-full p-1" label="set" @on-parent-event="CustomIpcRenderer.antenna">
+        </a-button>
+      </div>
     </div>
   </div>
 </template>
