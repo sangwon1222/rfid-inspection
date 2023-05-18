@@ -31,5 +31,9 @@ export default {
   setAtnSecond1: '>x j 1000\r\n',
   setAtnSecond2: '>x j 2000\r\n',
   setAtnSecond3: '>x j 3000\r\n',
-  setAtnSecondMax: '>x j 10000\r\n'
+  setAtnSecondMax: '>x j 10000\r\n',
+
+  // power gain
+  powerGainWeek: '>x p 50\r\n', // 50 ~ 310
+  powerGainAtn1Week: '>x p1 50\r\n'
 }

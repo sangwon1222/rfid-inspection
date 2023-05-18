@@ -3,13 +3,17 @@ import net from 'net'
 import idroPacket from './idroPacket'
 
 class MiddleWare {
-  async excute(funcName: string, arg: any) {
-    const valid = await this.check()
-    if (!valid) return
-    console.log(valid, this[funcName])
-    await this[funcName](...arg)
+  async excute(funcName: string, arg?: any) {
+    const valid = funcName[0] === '_' ? true : await this._check()
+
+    if (valid) {
+      const result = arg ? await this[funcName](...arg) : await this[funcName]()
+      return result
+    } else {
+      return 'DISCONNECT TCP'
+    }
   }
-  async check(): Promise<boolean | any> {
+  async _check(): Promise<boolean | any> {
     //
   }
 }
@@ -17,40 +21,40 @@ class MiddleWare {
 class Printer extends MiddleWare {
   private mTcp!: net.Socket
 
-  async connectTCP(host: string, port: number) {
+  async _connectTCP(host: string, port: number) {
     this.mTcp = net.createConnection({ host, port })
     this.mTcp.setMaxListeners(50)
     this.mTcp.on('connect', () => {
-      ipcMain.once('is-connected', (event, _response) => {
-        event.reply('is-connected', { ok: true, msg: 'success connect' })
+      this.onStop()
+      ipcMain.on('connect-status', (event, _response) => {
+        event.reply('connect-status', { ok: true, msg: 'success connect' })
       })
     })
     this.mTcp.on('end', () => {
-      ipcMain.once('is-connected', (event, _response) => {
-        event.reply('is-connected', { ok: false, msg: 'end connect' })
+      ipcMain.on('connect-status', (event, _response) => {
+        event.reply('connect-status', { ok: false, msg: 'end connect' })
       })
     })
     this.mTcp.on('close', () => {
-      ipcMain.once('is-connected', (event, _response) => {
-        event.reply('is-connected', { ok: false, msg: 'close connect' })
+      ipcMain.on('connect-status', (event, _response) => {
+        event.reply('connect-status', { ok: false, msg: 'close connect' })
       })
     })
     this.mTcp.on('error', () => {
-      ipcMain.once('is-connected', (event, _response) => {
-        event.reply('is-connected', { ok: false, msg: 'error connect' })
+      ipcMain.on('connect-status', (event, _response) => {
+        event.reply('connect-status', { ok: false, msg: 'error connect' })
       })
+    })
+    this.mTcp.on('data', (data) => {
+      console.log(data)
     })
   }
 
-  async check() {
-    ipcMain.once('replay-status', (event, _response) => {
-      event.reply('replay-status', { ok: false, msg: 'tcp disconnect...' })
-    })
+  async _check() {
     return Boolean(this.mTcp)
   }
 
-  async setAntenna(atn1: number, atn2: number, atn3: number, atn4: number) {
-    console.log(this.mTcp)
+  antenna(atn1: number, atn2: number, atn3: number, atn4: number) {
     const atn1Name = atn1 ? 'Atn1' : ''
     const atn2Name = atn2 ? 'Atn2' : ''
     const atn3Name = atn3 ? 'Atn3' : ''
@@ -60,13 +64,39 @@ class Printer extends MiddleWare {
     this.mTcp.write(idroPacket['stopReadRFID'])
     this.mTcp.write(idroPacket[antennaCmd])
     this.mTcp.write(idroPacket['startReadRFID'])
-    ipcMain.once('antenna', (event, _response) => {
-      event.reply('antenna', antennaCmd)
-    })
+    return antennaCmd
   }
 
-  md() {
-    if (!this.mTcp) return false
+  onBuzzer() {
+    this.mTcp.write(idroPacket['stopReadRFID'])
+    this.mTcp.write(idroPacket['onBuzzer'])
+    this.mTcp.write(idroPacket['startReadRFID'])
+    return 'ON_BUZZER'
+  }
+
+  offBuzzer() {
+    this.mTcp.write(idroPacket['stopReadRFID'])
+    this.mTcp.write(idroPacket['offBuzzer'])
+    this.mTcp.write(idroPacket['startReadRFID'])
+    return 'OFF_BUZZER'
+  }
+
+  onScan() {
+    this.mTcp.write(idroPacket['stopReadRFID'])
+    this.mTcp.write(idroPacket['startReadRFID'])
+    return 'ON_SCAN'
+  }
+
+  onStop() {
+    this.mTcp.write(idroPacket['stopReadRFID'])
+    this.mTcp.write(idroPacket['stop'])
+    return 'ON_STOP'
+  }
+  onPowerGainWeek() {
+    this.mTcp.write(idroPacket['stopReadRFID'])
+    this.mTcp.write(idroPacket['powerGainWeek'])
+    this.mTcp.write(idroPacket['startReadRFID'])
+    return 'ON_POWER_GAIN_WEEK'
   }
 }
 

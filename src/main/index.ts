@@ -3,16 +3,20 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import Printer from './print'
+import InspectionPort from './InspectionPort'
 
 const init = async () => {
-  ipcMain.handle('connect-print', async (_event) => {
-    await Printer.connectTCP('192.168.9.6', 5578)
-  })
+  const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(Printer))
+  for (let i = 1; i < propertyNames.length; i++) {
+    const property = propertyNames[i]
+    ipcMain.handle(property, async (_event, res) => {
+      const result = await Printer.excute(property, res ? [...res] : null)
+      return result
+    })
+  }
 
-  ipcMain.handle('antenna', async (_event, res) => {
-    const { atn1, atn2, atn3, atn4 } = res
-    Printer.excute('setAntenna', [atn1, atn2, atn3, atn4])
-  })
+  await InspectionPort.init()
+  await InspectionPort.open()
 }
 
 const createWindow = async () => {

@@ -1,13 +1,20 @@
 <script setup lang="ts" scoped>
-import { ref, reactive } from 'vue'
-import CustomIpcRenderer from '@util/ipcRenderer'
+import { ref, reactive, computed } from 'vue'
+import CustomIpcRenderer from '../../util/ipcRenderer'
 import { onMounted } from 'vue'
 import aAtnInput from '@atoms/aAtnInput.vue'
+import aButton from '@atoms/aButton.vue'
+import { print } from '../../store/print'
 
+const emit = defineEmits(['move-pop-up'])
 const controllerRef = ref(null)
 const state = reactive({
   isFold: false,
-  height: 0
+  height: 0,
+  status: computed(() => print.connect),
+  statusMsg: computed(() => print.connectMsg),
+  dragStart: false,
+  dragLayer: { x: 0, y: 0 }
 })
 
 onMounted(async () => {
@@ -15,60 +22,99 @@ onMounted(async () => {
   state.height = +wrapDiv.offsetHeight
 
   await CustomIpcRenderer.connectPrint()
-
-  const ptototype = Object.getOwnPropertyNames(Object.getPrototypeOf(CustomIpcRenderer))
-  console.log(ptototype)
-
-  console.log(ptototype)
-  console.log(ptototype.length)
-  for (let i = 1; i < ptototype.length; i++) {
-    console.log(ptototype[i])
-  }
 })
 
 const fold = () => {
   const wrapDiv = controllerRef.value as HTMLDivElement
   if (state.isFold) {
     wrapDiv.style.height = `${state.height}px`
+    wrapDiv.style.width = `180px`
   } else {
-    wrapDiv.style.height = `40px`
+    wrapDiv.style.width = `24px`
+    wrapDiv.style.height = `24px`
   }
   state.isFold = !state.isFold
+}
 
-  const ptototype = Object.getOwnPropertyNames(CustomIpcRenderer)
-  console.log(ptototype)
-  console.log(ptototype.length)
-  for (let i = 0; i < ptototype.length; i++) {
-    console.log(ptototype[i])
-  }
+const dragStart = (e) => {
+  state.dragLayer = { x: e.layerX, y: e.layerY }
+  state.dragStart = true
+}
+const dragStop = () => {
+  state.dragStart = false
+}
+// const dragging = (e: MouseEvent | TouchEvent) => {
+const dragging = (e: any) => {
+  if (!state.dragStart) return
+  console.log(e)
+  const pos =
+    e.type === 'mousemove'
+      ? { x: e.pageX - state.dragLayer.x, y: e.pageY - state.dragLayer.y }
+      : { x: e.touches[0].pageX - state.dragLayer.x, y: e.touches[0].pageY - state.dragLayer.y }
+  emit('move-pop-up', controllerRef.value, pos)
 }
 </script>
 
 <template>
-  <div ref="controllerRef" class="overflow-hidden transition-all rounded-xl">
-    <button
-      class="w-full h-40 mb-2 bg-cyan-500 hover:bg-cyan-600 text-red-50"
-      value="fold"
-      @click="fold"
+  <div
+    ref="controllerRef"
+    class="overflow-hidden transition-all whitespace-nowrap bg-white w-180"
+    @mouseup="dragStop"
+    @mouseout="dragStop"
+    @touchend="dragStop"
+    @touchcancel="dragStop"
+    @mousemove="dragging"
+    @touchmove="dragging"
+  >
+    <div
+      class="flex justify-between items-center px-1 mb-2 w-full h-6 bg-gray-500 cursor-pointer"
+      @mousedown="dragStart"
+      @touchstart="dragStart"
     >
-      {{ state.isFold ? 'Spread' : 'Fold' }}
-    </button>
+      <div class="overflow-hidden" :class="state.isFold ? 'w-0' : ''">
+        <p class="text-sm" :class="state.status ? 'text-white' : 'text-red-800'">
+          {{ state.statusMsg }}
+        </p>
+      </div>
+      <a-button
+        custom-style="w-4 h-4 p-0 flex justify-center items-center border"
+        label="-"
+        @click="fold"
+      />
+    </div>
 
-    <div class="col-grid gap-1">
-      <button class="w-full bg-amber-50 hover:bg-amber-100" @click="CustomIpcRenderer.connectPrint">
-        CONNECT PRINT
-      </button>
-      <button class="w-full" @click="CustomIpcRenderer.onBuzzer">ON BUZZER</button>
-      <button class="w-full" @click="CustomIpcRenderer.offBuzzer">OFF BUZZER</button>
-      <button class="w-full" @click="CustomIpcRenderer.stop">STOP</button>
+    <div class="col-grid gap-1 p-2 font-extrabold">
+      <a-button
+        add-style="w-full"
+        label="CONNECT PRINT"
+        @on-parent-event="CustomIpcRenderer.connectPrint"
+      />
+      <a-button
+        add-style="w-full"
+        label="ON BUZZER"
+        @on-parent-event="CustomIpcRenderer.onBuzzer"
+      />
+      <a-button
+        add-style="w-full"
+        label="OFF BUZZER"
+        @on-parent-event="CustomIpcRenderer.offBuzzer"
+      />
+      <a-button add-style="w-full" label="STOP" @on-parent-event="CustomIpcRenderer.onStop" />
+      <a-button add-style="w-full" label="SCAN" @on-parent-event="CustomIpcRenderer.onScan" />
+      <a-button
+        add-style="w-full"
+        label="POWERGAIN_WEEK"
+        @on-parent-event="CustomIpcRenderer.onPowerGainWeek"
+      />
 
-      <div class="flex flex-col gap-2 text-center border rounded-xl p-2 w-full">
-        <label class="font-extrabold"> ANTENNA </label>
+      <a-button
+        add-style="flex flex-col gap-2 w-full"
+        label="ANTENNA"
+        @on-parent-event="CustomIpcRenderer.antenna"
+      >
         <a-atn-input @antenna="CustomIpcRenderer.antenna" />
         <button form="antenna-form" type="submit" class="cursor-pointer">set</button>
-      </div>
+      </a-button>
     </div>
   </div>
 </template>
-
-<style lang="less" scoped></style>

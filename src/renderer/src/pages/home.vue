@@ -20,11 +20,19 @@ const startScan = () => {
 }
 
 const changeExcel = async (data: { [key: string]: string }) => (state.excelData = data)
+
+const movePopUp = (target: HTMLDivElement, pos) => {
+  console.log(pos)
+  const movex = `${pos.x}px`
+  const movey = `${pos.y}px`
+  target.style.top = movey
+  target.style.left = movex
+}
 </script>
 
 <template>
   <div class="col-grid flex-wrap pt-10 gap-10">
-    <idro-controller class="fixed top-10 right-10" />
+    <idro-controller class="fixed top-4 right-4" @move-pop-up="movePopUp" />
 
     <a-button :label="state.label" @on-parent-event="startScan" />
 

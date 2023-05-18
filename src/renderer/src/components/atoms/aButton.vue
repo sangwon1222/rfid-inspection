@@ -1,5 +1,5 @@
 <script setup lang="ts" scoped>
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 
 const emit = defineEmits(['onParentEvent'])
 
@@ -7,29 +7,31 @@ const props = defineProps({
   label: {
     type: String,
     default: ''
+  },
+  customStyle: {
+    type: String,
+    default: ''
+  },
+  addStyle: {
+    type: String,
+    default: ''
   }
 })
+const defaultStyle = 'border border-gray-400 p-4 rounded-xl '
 
 const state = reactive({
-  isAvtive: true
+  style: computed(() => (props.customStyle ? props.customStyle : defaultStyle))
 })
-const onEvent = (e: PointerEvent) => {
+
+const onEvent = (e: MouseEvent | TouchEvent) => {
   e.preventDefault()
-  if (state.isAvtive) emit('onParentEvent')
-  state.isAvtive = false
+  emit('onParentEvent')
 }
 </script>
 
 <template>
-  <button class="btn-wrap" @click="onEvent">
+  <button :class="`${state.style} ${props.addStyle}`" @click="onEvent" @touchstart="onEvent">
     {{ props.label }}
+    <slot />
   </button>
 </template>
-
-<style lang="less" scoped>
-.btn-wrap {
-  padding: 20px;
-  border: 2px rgba(0, 0, 0, 0.3) solid;
-  background-color: beige;
-}
-</style>
