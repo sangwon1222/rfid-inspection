@@ -30,7 +30,12 @@ const onEvent = (e: MouseEvent | TouchEvent) => {
 </script>
 
 <template>
-  <button :class="`${state.style} ${props.addStyle}`" @click="onEvent" @touchstart="onEvent">
+  <button
+    class="hover:bg-sky-900 hover:text-white"
+    :class="`${state.style} ${props.addStyle}`"
+    @click="onEvent"
+    @touchstart="onEvent"
+  >
     {{ props.label }}
     <slot />
   </button>

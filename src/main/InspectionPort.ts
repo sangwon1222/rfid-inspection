@@ -7,20 +7,22 @@ class InspectionPort {
   }
   constructor() {
     this.mPort = new SerialPort({
-      path: 'com3',
+      path: 'COM3',
       baudRate: 9600
     })
   }
   async init() {
+    console.log(await SerialPort.list())
     this.mPort.open((error) => {
-      // if (error) return console.log(error)
+      if (error) return console.log(error)
       this.mPort.write('connect')
     })
   }
 
   async open() {
     this.mPort.on('open', () => {
-      // console.log('open logic')
+      console.log('open logic')
+      console.log(this.mPort)
       this.mPort.on('data', function (data) {
         console.log('Data:', data)
       })

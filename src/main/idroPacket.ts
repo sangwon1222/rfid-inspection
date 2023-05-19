@@ -1,5 +1,6 @@
 export default {
-  startReadRFID: '>f \r\n',
+  startReadRFID: '>x c 0 \r\n',
+  autoStartReadRFID: '>f \r\n',
   stopReadRFID: '>3 \r\n',
 
   reset: '>E 1 2 6\r\n',
@@ -8,7 +9,7 @@ export default {
 
   getReaderState: '>7\r\n',
   readerReboot: '>S\r\n',
-  readerQuickReset: '>E 1 2 6\r\n',
+  readerQuickReset: '>E 1 2 6 \r\n',
   // tag
   setTagPassword: '>w 0 2 12345678 \r\n', //12345678 => 비밀번호 자리
   readTagPassword: '>r 0 2 2 \r\n',
@@ -19,7 +20,8 @@ export default {
   // EPC Bank 1word “1234” write
   // >w 1 2 1234
   notPassWriteTag1: '>x w 0  \r\n',
-  notPassWriteTag2: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
+  notPassWriteTag2: '>w 1 2', // 1234=> 비밀번호 자리
+  // notPassWriteTag2: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
 
   // set Buzzer volumn
   onBuzzer: '>x b 1\r\n',
@@ -49,6 +51,7 @@ export default {
   setAtnSecondMax: '>x j 10000\r\n',
 
   // power gain
-  powerGainWeek: '>x p 50\r\n', // 50 ~ 310
-  powerGainAtn1Week: '>x p1 50\r\n'
+  powerGain: '>x' // 50 ~ 310
+  // powerGainWeek: '>x p 50\r\n', // 50 ~ 310
+  // powerGainAtn1Week: '>x p1 100\r\n'
 }
