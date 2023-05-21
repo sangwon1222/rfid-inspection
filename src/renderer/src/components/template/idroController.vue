@@ -7,7 +7,6 @@ import aButton from '@atoms/aButton.vue'
 import aPowerGain from '@atoms/aPowerGain.vue'
 import aIdroHeader from '@atoms/aIdroHeader.vue'
 import { store } from '../../store/store'
-import { resolve } from 'path'
 
 const emit = defineEmits(['drag-pop-up', 'start-drag-pop-up', 'stop-drag-pop-up'])
 const controllerRef = ref(null)
@@ -20,45 +19,56 @@ const state = reactive({
     const { connect, connectMsg } = store.print
     return { ok: connect, msg: connectMsg }
   }),
-  rfidInfo: []
+  writedRFID: [],
+  readedRFID: [],
+  rfidOk: [],
+  oneRFIDcheckCNT: 2
 })
 
 onMounted(async () => {
+  fold()
   await CustomIpcRenderer.connectPrint()
+  await CustomIpcRenderer.connectInspector()
 })
 
 const startCheckProcess = async (excelData: any) => {
   const { length } = excelData
+  state.rfidOk = []
   for (let i = 0; i < length; i++) {
-    console.error(i)
-    await readRFID(excelData[i].barcode)
+    state.writedRFID = []
+    state.readedRFID = []
+    await checkRFID(excelData[i].barcode, i)
+    const status = state.rfidOk[i] ? 'passed' : 'defective'
+    const rfidInfo = await CustomIpcRenderer[status]()
+    console.log(
+      `%c ${i + 1}번째 RFID: ${rfidInfo}`,
+      `padding:5px; background:${state.rfidOk[i] ? 'blue' : 'red'}; color: #fff;`
+    )
   }
-  console.log('end')
 }
 
-const readRFID = async (barcode: string) => {
-  const read = await CustomIpcRenderer.onScan()
-
-  if (state.rfidInfo.length === 2) {
-    state.rfidInfo = []
-    state.rfidInfo.push(read)
-  } else {
-    state.rfidInfo.push(read)
-    await writeRFID(barcode, read as string)
+const checkRFID = async (barcode: string, index: number) => {
+  if (state.writedRFID.length < 2) {
+    await writeRFID(barcode, index)
   }
-  console.log('rfidInfo', state.rfidInfo)
 }
 
-const writeRFID = async (barcode: string, readed: string) => {
-  console.log('in write')
-  const write = await CustomIpcRenderer.onWrite(barcode)
-  console.log('write', write)
-  console.log('barcode', barcode)
-  console.log('readed', readed)
-  if (state.rfidInfo.length === 2) {
-    return
-  } else {
-    await readRFID(barcode)
+const readRFID = async (barcode: string, index: number) => {
+  const readed = (await CustomIpcRenderer.onScan(index)) as string
+  state.readedRFID.push(readed)
+  const checkCnt = state.writedRFID.length - 1
+  state.rfidOk[index] = state.readedRFID[checkCnt] === state.writedRFID[checkCnt]
+
+  if (state.writedRFID.length <= state.oneRFIDcheckCNT) {
+    await writeRFID(barcode, index)
+  }
+}
+
+const writeRFID = async (barcode: string, index: number) => {
+  const write = (await CustomIpcRenderer.onWrite(barcode)) as string
+  state.writedRFID.push(write)
+  if (state.writedRFID.length <= state.oneRFIDcheckCNT) {
+    await readRFID(barcode, index)
   }
 }
 
@@ -106,7 +116,7 @@ defineExpose({ startCheckProcess })
 </script>
 
 <template>
-  <div ref="controllerRef" class="overflow-hidden bg-white w-180 h-300 transition-all">
+  <div ref="controllerRef" class="overflow-hidden bg-white w-180 transition-all">
     <a-idro-header
       :drag-stop="state.isDragEventStop"
       :status-info="state.statusInfo"

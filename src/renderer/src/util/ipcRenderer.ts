@@ -2,13 +2,14 @@ import { store } from '../store/store'
 const { ipcRenderer } = require('electron')
 
 class CustomIpcRenderer {
+  // ------------------PRINTER
   connectPrint = async () => {
     await ipcRenderer.invoke('_connectTCP', ['192.168.9.6', 5578]).then((_result) => {
       ipcRenderer.send('connect-status')
       ipcRenderer.once('connect-status', (_event, { ok, msg }) => {
         store.print.connect = ok
         store.print.connectMsg = msg
-        console.log(`connect : [ ${ok} ]`)
+        console.log(`print-connect : [ ${msg} ]`)
       })
     })
   }
@@ -56,7 +57,7 @@ class CustomIpcRenderer {
   async onScan() {
     return new Promise((resolve, _reject) => {
       ipcRenderer.invoke('onScan').then((result) => {
-        resolve(result)
+        return resolve(result)
       })
     })
   }
@@ -64,7 +65,7 @@ class CustomIpcRenderer {
   async onWrite(barcode: string) {
     return new Promise((resolve, _reject) => {
       ipcRenderer.invoke('onWrite', [barcode]).then((result) => {
-        resolve(result)
+        return resolve(result)
       })
     })
   }
@@ -72,6 +73,32 @@ class CustomIpcRenderer {
   async onPowerGainWeek() {
     await ipcRenderer.invoke('onPowerGainWeek').then((result) => {
       console.log(result)
+    })
+  }
+
+  // ------------------INSPECTOR
+  connectInspector = async () => {
+    await ipcRenderer.invoke('_connectInspector').then((_result) => {
+      ipcRenderer.send('connect-inspector')
+      ipcRenderer.once('connect-inspector', (_event, data) => {
+        console.log(`inspector-connect : ${data.msg.toString()}`)
+      })
+    })
+  }
+
+  defective = async () => {
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('defective').then((result) => {
+        return resolve(result)
+      })
+    })
+  }
+
+  passed = async () => {
+    return new Promise((resolve, _reject) => {
+      ipcRenderer.invoke('passed').then((result) => {
+        return resolve(result)
+      })
     })
   }
 }

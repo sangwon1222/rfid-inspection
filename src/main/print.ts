@@ -2,6 +2,15 @@ import { ipcMain } from 'electron'
 import net from 'net'
 import idroPacket from './idroPacket'
 
+const ascii_to_hexa = (str: string) => {
+  const arr1 = [] as any
+  for (let n = 0, l = str.length; n < l; n++) {
+    const hex = Number(str.charCodeAt(n)).toString(16)
+    arr1.push(hex)
+  }
+  return arr1.join('')
+}
+
 class MiddleWare {
   async excute(funcName: string, arg?: any) {
     const valid = funcName[0] === '_' ? true : await this._check()
@@ -28,22 +37,22 @@ class Printer extends MiddleWare {
     this.mTcp.setMaxListeners(50)
     this.mTcp.on('connect', () => {
       this.onStop()
-      ipcMain.on('connect-status', (event, _response) => {
+      ipcMain.once('connect-status', (event, _response) => {
         event.reply('connect-status', { ok: true, msg: 'success connect' })
       })
     })
     this.mTcp.on('end', () => {
-      ipcMain.on('connect-status', (event, _response) => {
+      ipcMain.once('connect-status', (event, _response) => {
         event.reply('connect-status', { ok: false, msg: 'end connect' })
       })
     })
     this.mTcp.on('close', () => {
-      ipcMain.on('connect-status', (event, _response) => {
+      ipcMain.once('connect-status', (event, _response) => {
         event.reply('connect-status', { ok: false, msg: 'close connect' })
       })
     })
     this.mTcp.on('error', () => {
-      ipcMain.on('connect-status', (event, _response) => {
+      ipcMain.once('connect-status', (event, _response) => {
         event.reply('connect-status', { ok: false, msg: 'error connect' })
       })
     })
@@ -100,25 +109,14 @@ class Printer extends MiddleWare {
 
   onWrite(write: string) {
     return new Promise((resolve, _reject) => {
-      function ascii_to_hexa(str) {
-        const arr1 = [] as any
-        for (let n = 0, l = str.length; n < l; n++) {
-          const hex = Number(str.charCodeAt(n)).toString(16)
-          arr1.push(hex)
-        }
-        return arr1.join('')
-      }
+      const hex = ascii_to_hexa(write)
+      const cmd = `${idroPacket['notPassWriteTag2']} ${hex} \r\n`
 
-      const test = ascii_to_hexa(write)
-      const cmd = `${idroPacket['notPassWriteTag2']} ${test} \r\n`
-
-      // this.mTcp.write(idroPacket['notPassWriteTag1'])
       this.mTcp.write(cmd)
-      console.log('write', cmd)
+
       this.mTcp.once('data', (data) => {
-        console.log('write data', data)
-        console.log('write data', data.toString())
-        return resolve(`write=> ${write}`)
+        console.log(`write: `, data.toString())
+        return resolve(write)
       })
     })
   }

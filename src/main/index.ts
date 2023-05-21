@@ -3,20 +3,26 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import Printer from './print'
-import InspectionPort from './InspectionPort'
+import Inspector from './Inspector'
 
 const init = async () => {
-  const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(Printer))
-  for (let i = 1; i < propertyNames.length; i++) {
-    const property = propertyNames[i]
+  const PrinterProperties = Object.getOwnPropertyNames(Object.getPrototypeOf(Printer))
+  for (let i = 1; i < PrinterProperties.length; i++) {
+    const property = PrinterProperties[i]
     ipcMain.handle(property, async (_event, res) => {
       const result = await Printer.excute(property, res ? [...res] : null)
       return result
     })
   }
 
-  // await InspectionPort.init()
-  // await InspectionPort.open()
+  const InspectorProperties = Object.getOwnPropertyNames(Object.getPrototypeOf(Inspector))
+  for (let i = 1; i < InspectorProperties.length; i++) {
+    const property = InspectorProperties[i]
+    ipcMain.handle(property, async (_event, res) => {
+      const result = await Inspector.excute(property, res ? [...res] : null)
+      return result
+    })
+  }
 }
 
 const createWindow = async () => {
