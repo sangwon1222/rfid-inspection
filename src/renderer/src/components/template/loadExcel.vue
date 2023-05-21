@@ -2,6 +2,7 @@
 import AExcelButton from '@atoms/aExcelButton.vue'
 import XLSX from 'xlsx'
 import { reactive, computed } from 'vue'
+import aButton from '@atoms/aButton.vue'
 import { store } from '../../store/store'
 
 const emit = defineEmits(['changeExcel'])
@@ -52,36 +53,38 @@ const deleteExcelData = () => {
 
 <template>
   <div class="col-grid gap-2">
-    <div>
-      <input id="xlf" type="file" name="xlfile" @change="updateExcel" />
-      <button v-if="state.isExcelUpdated" @click="deleteExcelData">DELETE EXCEL</button>
+    <div class="flex items-center max-w-600 gap-2">
+      <input id="xlf" type="file" name="xlfile" @click="deleteExcelData" @change="updateExcel" />
+      <a-button v-if="state.isExcelUpdated" @click="deleteExcelData"> DELETE </a-button>
     </div>
 
-    <AExcelButton
-      v-if="!state.isExcelUpdated"
-      label="Drag & Drop a excel file"
-      @drop-in="updateExcel"
-    />
+    <div class="relative w-full h-full mt-4">
+      <AExcelButton
+        label="Drag & Drop a excel file"
+        :class="`opacity-${state.isExcelUpdated ? '0' : '1'}`"
+        @drop-in="updateExcel"
+      />
 
-    <div v-if="state.isExcelUpdated" class="table p-10">
-      <ul id="grid-header" class="table-row">
-        <li
-          v-for="(v, i) in state.excelHeader"
-          :key="i"
-          class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 border table-cell break-all max-w-200"
-        >
-          {{ v }}
-        </li>
-      </ul>
-      <ul v-for="(v, i) in state.excelData" :key="i" class="grid-data table-row">
-        <li
-          v-for="(value, index) in v"
-          :key="index"
-          class="border py-5 pr-10 pl-2 bg-white text-black table-cell break-all max-w-200"
-        >
-          {{ value }}
-        </li>
-      </ul>
+      <div v-if="state.isExcelUpdated" class="table p-10">
+        <ul id="grid-header" class="table-row">
+          <li
+            v-for="(v, i) in state.excelHeader"
+            :key="i"
+            class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 border table-cell break-all max-w-200"
+          >
+            {{ v }}
+          </li>
+        </ul>
+        <ul v-for="(v, i) in state.excelData" :key="i" class="grid-data table-row">
+          <li
+            v-for="(value, index) in v"
+            :key="index"
+            class="border py-5 pr-10 pl-2 bg-white text-black table-cell break-all max-w-200"
+          >
+            {{ value }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>

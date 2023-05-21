@@ -22,7 +22,8 @@ const state = reactive({
   writedRFID: [],
   readedRFID: [],
   rfidOk: [],
-  oneRFIDcheckCNT: 2
+  oneRFIDcheckCNT: 2,
+  isError: false
 })
 
 onMounted(async () => {
@@ -31,13 +32,25 @@ onMounted(async () => {
   await CustomIpcRenderer.connectInspector()
 })
 
+const error = () => {
+  state.writedRFID = []
+  state.readedRFID = []
+  state.rfidOk = []
+  state.isError = false
+}
+
 const startCheckProcess = async (excelData: any) => {
   const { length } = excelData
   state.rfidOk = []
   for (let i = 0; i < length; i++) {
+    console.log(i)
     state.writedRFID = []
     state.readedRFID = []
     await checkRFID(excelData[i].barcode, i)
+    if (state.isError) {
+      error()
+      break
+    }
     const status = state.rfidOk[i] ? 'passed' : 'defective'
     const rfidInfo = await CustomIpcRenderer[status]()
     console.log(
@@ -54,8 +67,9 @@ const checkRFID = async (barcode: string, index: number) => {
 }
 
 const readRFID = async (barcode: string, index: number) => {
-  const readed = (await CustomIpcRenderer.onScan(index)) as string
-  state.readedRFID.push(readed)
+  const { ok, msg } = (await CustomIpcRenderer.onScan()) as { ok: boolean; msg: string }
+  if (!ok) return
+  state.readedRFID.push(msg)
   const checkCnt = state.writedRFID.length - 1
   state.rfidOk[index] = state.readedRFID[checkCnt] === state.writedRFID[checkCnt]
 
@@ -65,8 +79,14 @@ const readRFID = async (barcode: string, index: number) => {
 }
 
 const writeRFID = async (barcode: string, index: number) => {
-  const write = (await CustomIpcRenderer.onWrite(barcode)) as string
-  state.writedRFID.push(write)
+  const { ok, msg } = (await CustomIpcRenderer.onWrite(barcode)) as { ok: boolean; msg: string }
+  if (!ok) {
+    state.isError = true
+    alert(msg)
+    return
+  }
+  console.log(msg)
+  state.writedRFID.push(msg)
   if (state.writedRFID.length <= state.oneRFIDcheckCNT) {
     await readRFID(barcode, index)
   }

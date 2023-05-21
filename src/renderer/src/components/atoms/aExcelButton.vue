@@ -54,12 +54,15 @@ const onDropIn = (e: DragEvent) => {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  top: 200px;
+  position: absolute;
+  top: 0;
+  left: 0;
   border: 2px #73778c solid;
   color: #73778c;
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  min-width: 400px;
+  height: 100%;
+  min-height: 400px;
   border-radius: 40px;
-  transition: all 0.25s;
 }
 </style>

@@ -55,18 +55,24 @@ class CustomIpcRenderer {
   }
 
   async onScan() {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
       ipcRenderer.invoke('onScan').then((result) => {
-        return resolve(result)
+        return resolve({ ok: true, msg: result })
       })
+      setTimeout(() => {
+        return resolve({ ok: false, msg: '프린트 연결을 확인해 주세요.' })
+      }, 3000)
     })
   }
 
   async onWrite(barcode: string) {
     return new Promise((resolve, _reject) => {
       ipcRenderer.invoke('onWrite', [barcode]).then((result) => {
-        return resolve(result)
+        return resolve({ ok: true, msg: result })
       })
+      setTimeout(() => {
+        return resolve({ ok: false, msg: '프린트 연결을 확인해 주세요.' })
+      }, 3000)
     })
   }
 
