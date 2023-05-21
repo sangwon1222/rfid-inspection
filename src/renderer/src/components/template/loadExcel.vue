@@ -61,7 +61,7 @@ const deleteExcelData = () => {
     <div class="relative w-full h-full mt-4">
       <AExcelButton
         label="Drag & Drop a excel file"
-        :class="`opacity-${state.isExcelUpdated ? '0' : '1'}`"
+        :class="`${state.isExcelUpdated ? 'opacity-0' : 'opacity-1'}`"
         @drop-in="updateExcel"
       />
 
