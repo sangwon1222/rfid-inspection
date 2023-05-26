@@ -37,7 +37,7 @@ const stopScan = () => {
   state.writedRFID = []
   state.readedRFID = []
   state.rfidOk = []
-  store.excel.checked = []
+  store.excel.checkedRFID = []
 }
 
 const startScan = async () => {
@@ -76,7 +76,7 @@ const startScan = async () => {
       `padding:5px; background:${state.rfidOk[i] ? 'blue' : 'red'}; color: #fff;`
     )
 
-    store.excel.checked[i] = state.rfidOk[i]
+    store.excel.checkedRFID[i] = state.rfidOk[i]
   }
 }
 

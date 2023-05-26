@@ -1,10 +1,12 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { app, shell, BrowserWindow, ipcMain, clipboard } from 'electron'
 import icon from '../../resources/icon.png?asset'
-import Printer from './print'
+const { Menu } = require('electron')
 import Inspector from './Inspector'
+import Printer from './print'
 import dbBase from './dbBase'
+import { join } from 'path'
+import tray from './tray'
 
 const init = async () => {
   const DBProperties = Object.getOwnPropertyNames(Object.getPrototypeOf(dbBase))
@@ -39,11 +41,12 @@ const createWindow = async () => {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    show: false,
+    show: true,
     title: '검수 발행기',
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     icon: icon,
+    // frame: false,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -51,8 +54,63 @@ const createWindow = async () => {
       contextIsolation: false
     }
   })
+
+  tray.init(mainWindow, icon)
+
+  mainWindow.on('close', function (event) {
+    event.preventDefault()
+    if (tray.quitMode) {
+      app.exit()
+    } else {
+      mainWindow.hide()
+    }
+  })
   mainWindow.on('ready-to-show', () => {
+    mainWindow.moveTop()
+    mainWindow.setKiosk(true)
+    // mainWindow.maximize()
+    mainWindow.setMinimumSize(800, 600)
     mainWindow.show()
+    const menu = Menu.buildFromTemplate([
+      { label: app.name.toUpperCase(), icon: clipboard.readImage() },
+      { type: 'separator' },
+      {
+        label: 'Excel',
+        submenu: [
+          {
+            label: 'upload',
+            click: () => {
+              console.log('upload')
+            }
+          },
+          {
+            label: 'delete',
+            click: () => {
+              console.log('delete')
+            }
+          }
+        ]
+      },
+      {
+        label: 'Mode',
+        submenu: [
+          {
+            label: 'kiosk',
+            click: () => {
+              mainWindow.setKiosk(true)
+            }
+          },
+          {
+            label: 'dev',
+            click: () => {
+              mainWindow.setKiosk(false)
+            }
+          }
+        ]
+      },
+      { role: 'reload' }
+    ])
+    Menu.setApplicationMenu(menu)
   })
 
   await init()

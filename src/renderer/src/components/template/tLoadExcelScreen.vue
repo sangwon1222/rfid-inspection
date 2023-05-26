@@ -80,15 +80,15 @@ const updateExcel = async (file) => {
               :key="i"
               class="grid-data table-row"
               :class="
-                Boolean(store.excel.checked[i])
-                  ? store.excel.checked[i]
-                    ? 'bg-white'
+                Boolean(store.excel.checkedRFID[i])
+                  ? store.excel.checkedRFID[i]
+                    ? 'bg-blue-200'
                     : 'bg-red-200'
-                  : 'bg-gray-200'
+                  : 'bg-white'
               "
             >
               <li
-                v-for="(value, index) in v"
+                v-for="(value, index) of v"
                 :key="index"
                 class="border py-5 pr-10 pl-2 text-black table-cell break-all max-w-200"
               >

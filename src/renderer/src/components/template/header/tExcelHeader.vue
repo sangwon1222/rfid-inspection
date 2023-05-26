@@ -10,10 +10,13 @@ const initExcel = async () => {
 }
 
 const deleteAll = async () => {
-  await dbIpcRenderer.deleteAll()
-  const { data } = await dbIpcRenderer.read()
-  initExcel()
-  store.excel.data = data
+  const { ok, msg } = await dbIpcRenderer.deleteAll()
+  console.log(msg)
+  if (ok) {
+    const { data } = await dbIpcRenderer.read()
+    initExcel()
+    store.excel.data = data
+  }
 }
 
 const updateExcel = async (e: Event) => {

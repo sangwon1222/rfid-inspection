@@ -7,7 +7,7 @@ export const store = reactive({
   },
   excel: {
     data: [],
-    checked: [],
+    checkedRFID: [],
     isExcelUpdated: false,
     manager: excelManager
   },

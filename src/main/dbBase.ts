@@ -4,7 +4,7 @@ const fs = require('fs')
 interface TypeDBResponse {
   ok: boolean
   msg: string
-  data?: any[]
+  data?: any | undefined
 }
 
 class dbBase {
@@ -16,41 +16,14 @@ class dbBase {
   }
 
   async create(): Promise<TypeDBResponse> {
-    return new Promise((resolve, _reject) => {
-      const file = './db/test.db'
-      try {
-        fs.writeFileSync(file, '', { flag: 'wx' })
-        this.mDB = new sqlite3.Database(file)
-        const createTableSQL =
-          'CREATE TABLE IF NOT EXISTS inspectorData (' +
-          'idx INTEGER NOT NULL UNIQUE, ' +
-          'epc TEXT NOT NULL,' +
-          'password TEXT DEFAULT "000000",' +
-          'date TEXT DEFAULT CURRENT_TIMESTAMP,' +
-          'PRIMARY KEY(idx AUTOINCREMENT)' +
-          ')'
-        this.mDB.run(createTableSQL)
-        resolve({ ok: true, data: [], msg: 'DB 생성 완료' })
-      } catch (e) {
-        const error = e as any
-        if (error.code === 'EEXIST') {
-          this.mDB = new sqlite3.Database(file)
-          const sql = 'SELECT * FROM inspectorData'
-          const data = []
-          this.mDB.all(sql, [], (err: any, rows: any[]) => {
-            if (err) throw err
-
-            rows.forEach((row: any) => {
-              data.push(row)
-            })
-            resolve({ ok: true, data, msg: '기존 DB 파일이 있습니다.' })
-          })
-        } else {
-          this.mDB = null
-          resolve({ ok: false, data: [], msg: error.message })
-        }
-      }
-    })
+    try {
+      const create = await this.createTable()
+      const read = await this.read()
+      return { ok: create.ok, data: read.data, msg: create.msg }
+    } catch (e: any) {
+      this.mDB = null
+      return { ok: false, data: [], msg: e.message }
+    }
   }
 
   async read(): Promise<TypeDBResponse> {
@@ -58,15 +31,15 @@ class dbBase {
       const sql = 'SELECT * FROM inspectorData'
       const data = []
       try {
-        this.mDB.all(sql, [], (err: any, rows: any[]) => {
+        this.mDB.all(sql, [], (err: any, rows: []) => {
           if (err) throw err
 
-          rows.forEach((row: any) => {
+          rows.forEach((row) => {
             data.push(row)
           })
           resolve({ ok: true, data, msg: 'DB조회 성공' })
         })
-      } catch (e) {
+      } catch (e: any) {
         const msg = this.mDB ? e.message : 'DB연결이 안되어 있습니다.'
         resolve({ ok: false, msg, data: [] })
       }
@@ -83,7 +56,7 @@ class dbBase {
           const msg = '중복된 epc'
           resolve({ ok, msg })
         })
-      } catch (e) {
+      } catch (e: any) {
         resolve({ ok: false, msg: e.message })
       }
     })
@@ -113,19 +86,66 @@ class dbBase {
           }
         })
         resolve({ ok: true, msg: '데이터 추가 성공' })
-      } catch (e) {
+      } catch (e: any) {
         resolve({ ok: false, msg: e.message })
       }
     })
   }
 
-  async deleteAll(): Promise<TypeDBResponse> {
+  async deleteAll() {
+    try {
+      const sql = 'DELETE FROM inspectorData'
+      this.mDB.run(sql)
+      return { ok: true, msg: '데이터 삭제 성공' }
+    } catch (e: any) {
+      return { ok: false, msg: e.message }
+    }
+  }
+
+  async createTable(): Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      const file = './db/test.db'
+      try {
+        fs.writeFileSync(file, '', { flag: 'wx' })
+        this.mDB = new sqlite3.Database(file)
+        const createTableSQL =
+          'CREATE TABLE IF NOT EXISTS inspectorData (' +
+          'idx INTEGER NOT NULL UNIQUE, ' +
+          'epc TEXT NOT NULL,' +
+          'password TEXT DEFAULT "000000",' +
+          'date TEXT DEFAULT CURRENT_TIMESTAMP,' +
+          'PRIMARY KEY(idx AUTOINCREMENT)' +
+          ')'
+        this.mDB.run(createTableSQL)
+        resolve({ ok: true, data: [], msg: 'DB 생성 완료' })
+      } catch (e) {
+        const error = e as any
+        if (error.code === 'EEXIST') {
+          this.mDB = new sqlite3.Database(file)
+          const createTableSQL =
+            'CREATE TABLE IF NOT EXISTS inspectorData (' +
+            'idx INTEGER NOT NULL UNIQUE, ' +
+            'epc TEXT NOT NULL,' +
+            'password TEXT DEFAULT "000000",' +
+            'date TEXT DEFAULT CURRENT_TIMESTAMP,' +
+            'PRIMARY KEY(idx AUTOINCREMENT)' +
+            ')'
+          this.mDB.run(createTableSQL)
+          resolve({ ok: true, msg: '기존 DB 파일이 있습니다.' })
+        } else {
+          resolve({ ok: false, msg: error.message })
+        }
+      }
+    })
+  }
+
+  async dropTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       try {
-        const sql = 'DELETE FROM inspectorData'
+        const sql = 'DROP TABLE inspectorData'
         this.mDB.run(sql)
-        resolve({ ok: true, msg: '데이터 삭제 성공' })
-      } catch (e) {
+        resolve({ ok: true, msg: '테이블 삭제 성공' })
+      } catch (e: any) {
         resolve({ ok: false, msg: e.message })
       }
     })
