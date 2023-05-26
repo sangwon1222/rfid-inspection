@@ -37,32 +37,15 @@ const onDropIn = (e: DragEvent) => {
 <template>
   <div
     ref="dragBoxRef"
-    class="dragAndDrop"
+    class="flex flex-wrap justify-center items-center w-full h-full z-10"
     @dragenter.prevent="ableStyle"
     @dragleave.prevent="defaultStyle"
     @dragend.prevent="defaultStyle"
     @drop.prevent="onDropIn($event)"
     @dragover.prevent
   >
-    {{ props.label }}
+    <label class="absolute">{{ props.label }}</label>
+
+    <slot />
   </div>
 </template>
-
-<style lang="less" scoped>
-.dragAndDrop {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 0;
-  left: 0;
-  border: 2px #73778c solid;
-  color: #73778c;
-  width: 100%;
-  min-width: 400px;
-  height: 100%;
-  min-height: 400px;
-  border-radius: 40px;
-}
-</style>

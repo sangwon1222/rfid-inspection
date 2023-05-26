@@ -4,9 +4,10 @@
 
 @layer base {
   body {
-    @apply flex flex-col bg-gray-800 text-slate-500 font-bold;
+    @apply flex flex-col bg-main text-slate-500 font-bold;
     font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Open Sans', sans-serif;
+    font-size: 14px;
     -webkit-user-select:none;
     -moz-user-select:none;
     -ms-user-select:none;
@@ -14,32 +15,34 @@
   }
 }
 
-.main-color {
+.bg-gnb{
+  background-color: #777781;
+}
+.bg-btn{
+  background-color: #707386;
+  color: #000;
+  &:hover{
+    background-color:#4b588d;
+    color: #fff;
+  }
+}
+.bg-main {
   @apply bg-slate-800;
 }
-.sub-color1 {
+.bg-sub-1 {
   @apply bg-slate-500;
 }
 
-
-.col-grid{
-  @apply flex flex-wrap flex-col items-center;
-}
-
-
 *::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 10px;
+  height: 10px;
 }
 *::-webkit-scrollbar-track{
-  background-color: transparent;
+  @apply bg-slate-400;
 }
 
-.scroll-teal-500::-webkit-scrollbar-thumb{
-  background-color: #14b8a6;
-}
-.scroll-teal-900::-webkit-scrollbar-thumb{
-  background-color: #134e4a;
+*::-webkit-scrollbar-thumb{
+  @apply bg-teal-800;
 }
 
 
@@ -73,7 +76,6 @@ code {
   border-radius: 2px;
   background-color: #26282e;
   font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-  font-size: 85%;
 }
 
 a {
@@ -112,7 +114,6 @@ a:hover {
     float: left;
     border-right: 1px solid rgba(194, 245, 255, 0.4);
     padding: 0 20px;
-    font-size: 13px;
     opacity: 0.8;
 
     &:last-child {
@@ -164,7 +165,6 @@ a:hover {
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  font-size: 18px;
   font-weight: 500;
 
   a {

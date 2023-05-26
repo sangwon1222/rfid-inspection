@@ -1,7 +1,15 @@
-<script setup lang="ts" scoped></script>
+<script setup lang="ts" scoped>
+import { onMounted } from 'vue'
+import { store } from './store/store'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+onMounted(() => {
+  router.push(store.page.tab)
+})
+</script>
 
 <template>
-  <div class="overflow-hidden h-screen w-screen">
-    <router-view />
-  </div>
+  <router-view />
 </template>

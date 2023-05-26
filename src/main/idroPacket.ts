@@ -1,27 +1,58 @@
 export default {
   startReadRFID: '>x c 0 \r\n',
   autoStartReadRFID: '>f \r\n',
-  stopReadRFID: '>3 \r\n',
+
+  // 실행중인 커맨드 정지
+  allStop: '>3 \r\n',
+
+  /**
+   * memory read
+   */
+  // memoryRead: '>r 1 2 8\r\n', // 판교용
+  memoryRead: '>r 1 2 6\r\n', // 본사 용
+
+  //  >1T7465737407
+  //  >1T746500
+
+  /**
+   * memory write
+   */
+  // Reader password ‘0’
+  // >x w 0
+  // EPC Bank 1word “1234” write
+  // >w 1 2 1234
+  notPassWriteTag1: '>x w 0  \r\n',
+  notPassWriteTag2: '>w 1 2',
+  // notPassWriteTag2: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
 
   reset: '>E 1 2 6\r\n',
   start: '>start\r\n',
-  stop: '>3\r\n',
 
+  //리더가 현재 실행중인 명령어를 확인한다
+  /** reply
+   * 첫 번째 자리: > Hader
+   * 두 번째 자리:  1 Antenna Number
+   * 세 번째 자리: S Reply Code
+   * 네 번째 자리:
+   * 3 = stop
+   * f = inventory
+   * d = Filtering Inventory
+   * r = Memory Read
+   * i = Inventory&Memory Read
+   * w = Memory Write
+   * l = Memory Lock
+   * k = Tag Kill
+   * B = Memory Block Write
+   * E = Memory Block Erase
+   */
   getReaderState: '>7\r\n',
+
   readerReboot: '>S\r\n',
   readerQuickReset: '>E 1 2 6 \r\n',
   // tag
   setTagPassword: '>w 0 2 12345678 \r\n', //12345678 => 비밀번호 자리
   readTagPassword: '>r 0 2 2 \r\n',
   setLockTagPassword: '>l 0030 0020 \r\n', //12345678 => 비밀번호 자리
-
-  // Reader password ‘0’
-  // >x w 0
-  // EPC Bank 1word “1234” write
-  // >w 1 2 1234
-  notPassWriteTag1: '>x w 0  \r\n',
-  notPassWriteTag2: '>w 1 2', // 1234=> 비밀번호 자리
-  // notPassWriteTag2: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
 
   // set Buzzer volumn
   onBuzzer: '>x b 1\r\n',

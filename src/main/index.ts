@@ -4,8 +4,18 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import Printer from './print'
 import Inspector from './Inspector'
+import dbBase from './dbBase'
 
 const init = async () => {
+  const DBProperties = Object.getOwnPropertyNames(Object.getPrototypeOf(dbBase))
+  for (let i = 2; i < DBProperties.length; i++) {
+    const property = DBProperties[i]
+    ipcMain.handle(property, async (_event, res) => {
+      const result = await dbBase.excute(property, res ? [...res] : null)
+      return result
+    })
+  }
+
   const PrinterProperties = Object.getOwnPropertyNames(Object.getPrototypeOf(Printer))
   for (let i = 1; i < PrinterProperties.length; i++) {
     const property = PrinterProperties[i]
@@ -33,6 +43,7 @@ const createWindow = async () => {
     title: '검수 발행기',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
+    icon: icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

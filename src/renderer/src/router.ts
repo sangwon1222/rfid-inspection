@@ -1,11 +1,23 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', component: () => import('./pages/home.vue') },
-  { path: '/home', component: () => import('./pages/home.vue') }
+  { path: '/', name: 'home', component: () => import('./pages/excel.vue') },
+  { path: '/excel', name: 'excel', component: () => import('./pages/excel.vue') },
+  {
+    path: '/404',
+    name: 'notFound',
+    component: () => import('./pages/404.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'notFound',
+    component: () => import('./pages/404.vue')
+  }
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHashHistory(),
   routes
 })
+
+export default router

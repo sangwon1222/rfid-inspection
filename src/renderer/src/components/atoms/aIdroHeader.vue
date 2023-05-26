@@ -29,14 +29,14 @@ const props = defineProps({
 
     <div class="flex gap-1">
       <a-button
-        custom-style="w-4 h-4 p-2 flex justify-center items-center border text-white text-xs"
+        custom-style="w-4 h-4 p-2 flex justify-center items-center border text-white transition-all"
         label="▼"
-        @pointerdown="emit('minimalize')"
+        @pointerdown="emit('fold', $event)"
       />
       <a-button
-        custom-style="w-4 h-4 p-2 flex justify-center items-center border text-white"
+        custom-style="w-4 h-4 p-2 flex justify-center items-center border text-white text-xs"
         label="-"
-        @pointerdown="emit('fold')"
+        @pointerdown="emit('minimalize')"
       />
     </div>
   </div>
