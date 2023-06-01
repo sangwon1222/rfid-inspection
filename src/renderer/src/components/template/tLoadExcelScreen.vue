@@ -1,97 +1,68 @@
 <script setup lang="ts" scoped>
 import AExcelButton from '@atoms/aExcelButton.vue'
-import XLSX from 'xlsx'
-import { reactive, computed, onMounted } from 'vue'
-import { store } from '../../store/store'
-import dbIpcRenderer from '../../util/dbIpcRenderer'
+import { computed, onMounted } from 'vue'
+import { store } from '@store/store'
+import dbManager from '@util/dbManager'
 
-const state = reactive({
-  excelHeader: computed(() => {
-    const reulst = store.excel.data[0] ? Object.keys(store.excel.data[0]) : []
-    return reulst
-  }),
-  excelData: computed(() => store.excel.data)
-})
+const excelHeader = computed(() => (store.excel.data[0] ? Object.keys(store.excel.data[0]) : []))
+const excelData = computed(() => store.excel.data)
 
 onMounted(async () => {
-  const { ok, msg, data } = await dbIpcRenderer.create()
-  console.log(msg)
-  store.excel.isExcelUpdated = data.length > 0
+  const { ok, msg, data } = await dbManager.connectDB()
   if (ok) {
+    store.excel.isExcelUpdated = data.length > 0
     store.excel.data = data
+  } else {
+    store.excel.isExcelUpdated = false
+    store.excel.data = []
   }
 })
 
 const getEvent = async (e: DragEvent | Event) => {
-  e.stopPropagation()
-  e.preventDefault()
-
-  console.log(e.type)
-  switch (e.type) {
-    case 'drop':
-      break
-    // case 'drop':
-    // break
-  }
-
-  const files = e.type === 'drop' ? (e as DragEvent).dataTransfer.files : (e.target as any).files
+  const files = (e as DragEvent).dataTransfer.files
   if (!files.length) return
-
-  const file = files[0]
-
-  if (e.type === 'drop') {
-    const input = document.getElementById('xlf') as HTMLInputElement
-    input.files = files
-  }
-  updateExcel(file)
+  const input = document.getElementById('xlf') as HTMLInputElement
+  input.files = files
+  updateExcel(files[0])
 }
 
 const updateExcel = async (file) => {
-  console.log('excel loading')
   await store.excel.manager.updateExcel(file)
-  console.log('excel loaded')
+}
+
+const getCssStyle = (i: number) => {
+  switch (store.excel.checkedRFID[i]) {
+    case true:
+      return 'bg-blue-200'
+    case false:
+      return 'bg-red-200'
+    default:
+      return 'bg-white'
+  }
 }
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-2 w-full">
+  <div class="excel-screen-wrap">
     <div class="w-full h-full">
       <a-excel-button
         label="Drag & Drop A EXCEL FILE"
-        @drop-in="getEvent"
+        @drop-in.stop.self="getEvent"
         @update-excel="updateExcel"
       >
-        <div
-          v-if="store.excel.isExcelUpdated"
-          class="relative overflow-auto w-full h-[calc(100vh-100px)] p-2 bg-white"
-        >
+        <div v-if="store.excel.isExcelUpdated" class="table-wrap">
           <div class="table w-full">
-            <ul id="grid-header" class="table-row">
+            <ul class="table-row">
               <li
-                v-for="(v, i) in state.excelHeader"
+                v-for="(v, i) in excelHeader"
                 :key="i"
                 class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 border table-cell break-all max-w-200"
               >
                 {{ v }}
               </li>
             </ul>
-            <ul
-              v-for="(v, i) in state.excelData"
-              :key="i"
-              class="grid-data table-row"
-              :class="
-                Boolean(store.excel.checkedRFID[i])
-                  ? store.excel.checkedRFID[i]
-                    ? 'bg-blue-200'
-                    : 'bg-red-200'
-                  : 'bg-white'
-              "
-            >
-              <li
-                v-for="(value, index) of v"
-                :key="index"
-                class="border py-5 pr-10 pl-2 text-black table-cell break-all max-w-200"
-              >
+            <ul v-for="(v, i) in excelData" :key="i" class="table-row" :class="getCssStyle(i)">
+              <li v-for="(value, index) of v" :key="index" class="table-cell">
                 {{ value }}
               </li>
             </ul>
@@ -101,3 +72,16 @@ const updateExcel = async (file) => {
     </div>
   </div>
 </template>
+
+<style scoped lang="less">
+.excel-screen-wrap {
+  @apply flex w-full h-full;
+  .table-wrap {
+    @apply relative overflow-auto w-full p-2 bg-white;
+    height: calc(100vh - 100px);
+  }
+  .table-cell {
+    @apply border py-5 pr-10 pl-2 text-black break-all max-w-200;
+  }
+}
+</style>

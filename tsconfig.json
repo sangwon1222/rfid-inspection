@@ -8,8 +8,16 @@
     "esModuleInterop": true,
     "lib": ["es2017", "DOM"],
     "noEmit": true,
-    "baseUrl": "./src",
+    "baseUrl": "./",
+    "paths":{
+        "@renderer/*": ["src/renderer/src/*"],
+        "@atoms/*": ["src/renderer/src/components/atoms/*"],
+        "@template/*": ["src/renderer/src/components/template/*"],
+        "@store/*": ["src/renderer/src/store/*"],
+        "@util/*": ["src/renderer/src/util/*"],
+        "@type/*": ["src/renderer/src/type/*"],
+    }
   },
-  "include": ["src", "src/**/*"],
+  "include": ["src", "src/**/*","src/**/*.ts","src/**/*d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

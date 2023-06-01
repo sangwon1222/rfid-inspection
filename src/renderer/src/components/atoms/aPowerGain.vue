@@ -1,5 +1,5 @@
 <script setup scoped lang="ts">
-import { store } from '../../store/store'
+import { store } from '@store/store'
 import { reactive } from 'vue'
 
 const state = reactive({

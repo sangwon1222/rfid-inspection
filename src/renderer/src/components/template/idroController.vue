@@ -28,7 +28,7 @@ const state = reactive({
 
 onMounted(async () => {
   await PrintIpcRenderer.connectPrint()
-  await InspectorIpcRenderer.connectInspector()
+  await InspectorIpcRenderer.connectSerialPort()
 
   await PrintIpcRenderer.getReaderState()
 })

@@ -1,22 +1,39 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import { contextBridge, ipcRenderer } from 'electron'
+import { electronAPI, ElectronAPI } from '@electron-toolkit/preload'
+import DBApi from './api/DBApi'
+import SerialApi from './api/SerialApi'
+import TCPApi from './api/TCPApi'
 
-// Custom APIs for renderer
-const api = {}
+const DBapi = new DBApi(ipcRenderer)
+const Serialapi = new SerialApi(ipcRenderer)
+const TCPapi = new TCPApi(ipcRenderer)
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
+interface TypdApi {
+  [key: string]: any
+}
+
+declare global {
+  interface Window {
+    electron?: ElectronAPI
+    api?: any
+    DBapi: TypdApi
+    Serialapi: TypdApi
+    TCPapi: TypdApi
+  }
+}
+
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('DBapi', DBapi)
+    contextBridge.exposeInMainWorld('Serialapi', Serialapi)
+    contextBridge.exposeInMainWorld('TCPapi', TCPapi)
   } catch (error) {
     console.error(error)
   }
 } else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
+  window.electron = electronAPI as ElectronAPI
+  window.DBapi = DBapi as TypdApi
+  window.Serialapi = Serialapi as TypdApi
+  window.TCPapi = TCPapi as TypdApi
 }

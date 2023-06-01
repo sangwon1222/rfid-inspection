@@ -1,43 +1,57 @@
 <script setup lang="ts" scoped>
-import { useRouter } from 'vue-router'
-import { store } from '../../../store/store'
-import tExcelHeader from '@template/header/tExcelHeader.vue'
+import { useRoute, useRouter } from 'vue-router'
+import { filter } from 'lodash-es'
+import { computed } from 'vue'
+import { TypeObject } from '@type/index'
+import { store } from '@renderer/store/store'
 
 const router = useRouter()
-const tabList = [
-  { en: '/', kor: '엑셀 업로드' },
-  { en: 'excel2', kor: '엑셀 업로드2' }
-]
+const route = useRoute()
 
-const changeTab = (tab: string) => {
-  if (store.page.tab === tab) return
-  store.page.tab = tab
-  router.push(tab)
-}
+const tabList = computed(() => {
+  const { routes } = router.options
+  return filter(routes, (e) => e.name !== 'notFound' && e.path !== '/') as TypeObject[]
+})
 </script>
 
 <template>
-  <div class="fixed z-10 top-0 left-0 flex flex-col pt-2 w-full box-border bg-gnb">
-    <div class="flex gap-1 w-full px-4">
+  <div
+    class="overflow-hidden fixed z-10 top-0 left-0 flex flex-wrap justify-between px-4 w-full h-40 box-border bg-gnb"
+  >
+    <div class="flex gap-2 pt-2">
       <button
         v-for="(v, i) in tabList"
         :key="i"
-        :class="`${store.page.tab === v.en ? 'tab-btn-clicked bg-main' : 'tab-btn-none'}`"
         class="tab-btn"
-        @click="changeTab(v.en)"
+        :class="`${route.path === v.path ? 'tab-btn-clicked bg-main' : 'tab-btn-none'}`"
+        @click="router.push(v.name)"
       >
-        {{ v.kor }}
+        {{ v.label }}
       </button>
     </div>
-    <div class="flex gap-1 w-full">
-      <t-excel-header v-if="store.page.tab === '/'" />
+
+    <div class="grid grid-cols-2 gap-2 width-fit">
+      <button
+        class="border-2 rounded px-4"
+        :class="store.print.connect ? 'bg-teal-300' : 'bg-red-500 text-white'"
+        @click="router.push('set-idro')"
+      >
+        TCP (IDRO)
+      </button>
+      <button
+        class="border-2 rounded px-4"
+        :class="store.serial.connect ? 'bg-teal-300' : 'bg-red-500 text-white'"
+        @click="router.push('set-serial')"
+      >
+        SERIAL (검수기)
+      </button>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
 .tab-btn {
-  @apply w-100 h-30 px-1 rounded-t cursor-pointer box-border border-gray-400 border-2 border-b-0 text-white;
+  @apply w-100 h-32 px-1 rounded-t cursor-pointer box-border border-gray-400 border-2 border-b-0 text-white;
 }
 .tab-btn-clicked {
   @apply border-none;

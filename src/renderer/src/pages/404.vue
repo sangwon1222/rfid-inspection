@@ -1,11 +1,9 @@
 <script setup lang="ts" scoped>
 import { useRouter } from 'vue-router'
-import { store } from '../store/store'
 
 const router = useRouter()
 
 const goHome = () => {
-  store.page.tab = '/'
   router.push('/')
 }
 </script>

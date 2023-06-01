@@ -1,4 +1,31 @@
+import { ipcMain } from 'electron'
+
+export interface TypeMiddleware {
+  _check(): Promise<boolean>
+  _reConnect(): Promise<{ ok: boolean; msg: string } | any>
+  _disconnect(): Promise<any>
+}
+
 export class Common {
+  async registMiddleware(obj: TypeMiddleware) {
+    const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(obj))
+    const exclude = ['constructor', '_reConnect', '_check', '_disconnect']
+    for (const property of properties) {
+      if (exclude.includes(property)) continue
+
+      ipcMain.handle(property, async (_event, res) => {
+        const isConnect = property.substring(0, 7) === 'connect' ? true : await obj._check()
+        const arg = res ? [...res] : null
+
+        if (isConnect) {
+          return arg ? await obj[property](...arg) : await obj[property]()
+        } else {
+          return { ok: false, msg: 'disconnect...' }
+        }
+      })
+    }
+  }
+
   ascii_to_hexa(str: string) {
     const arr1 = [] as any
     for (let n = 0, l = str.length; n < l; n++) {
