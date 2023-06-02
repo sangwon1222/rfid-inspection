@@ -15,12 +15,13 @@ export class Common {
 
       ipcMain.handle(property, async (_event, res) => {
         const isConnect = property.substring(0, 7) === 'connect' ? true : await obj._check()
-        const arg = res ? [...res] : null
+        if (!isConnect) return { ok: false, msg: 'disconnect...' }
 
-        if (isConnect) {
-          return arg ? await obj[property](...arg) : await obj[property]()
-        } else {
-          return { ok: false, msg: 'disconnect...' }
+        switch (typeof res) {
+          case 'object':
+            return res?.length ? await obj[property](...res) : await obj[property](res)
+          default:
+            return await obj[property]()
         }
       })
     }

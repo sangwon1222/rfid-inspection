@@ -4,14 +4,15 @@ import tSnb from '@template/navigation/tSideNaviBar.vue'
 import serialManager from '@util/serialManager'
 import tLoading from '@template/tLoading.vue'
 import tcpManager from '@util/tcpManager'
-import { store } from './store/store'
-import { computed } from 'vue'
-import { onMounted } from 'vue'
+import dbManager from '@util/dbManager'
+import { store } from '@store/store'
+import { onMounted, computed } from 'vue'
 const isLoading = computed(() => store.loading.isLoading)
 
 onMounted(async () => {
   await tcpManager.connectPrint()
   await serialManager.connectSerialPort()
+  await dbManager.connectDB()
 })
 </script>
 

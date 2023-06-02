@@ -3,18 +3,20 @@ import { store } from '@store/store'
 class TCPmanager {
   async connectPrint() {
     try {
-      const { ok, msg } = await window.TCPapi.connectPrint()
+      const { host, port } = store.print.default
+      const { ok, msg } = await window.TCPapi.connectPrint({ host, port })
       store.print.connect = ok
       store.print.connectMsg = msg
 
       console.groupCollapsed(`%c TCP CONNECT`, 'padding: 4px; background: #bcbcbc;  font-bold:800;')
-      console.log({ ok, msg })
+      console.log('통신메세지:', msg)
+      console.log('host:', host)
+      console.log('port:', port)
       console.groupEnd()
       return { ok, msg }
     } catch (e) {
-      console.error(e)
       store.print.connect = false
-      return e
+      return { ok: false, msg: e.message }
     }
   }
 
@@ -25,28 +27,26 @@ class TCPmanager {
         store.print.atnInfo = { atn1: 0, atn2: 0, atn3: 0, atn4: 0 }
         return console.log('안테나 값 입력해주세요.')
       }
-      const result = await window.TCPapi.antenna(store.print.atnInfo)
-      console.groupCollapsed(`%c ANTENNA`, 'padding: 4px; background: #bcbcbc; font-bold:800;')
-      console.log(result)
+      const { able, disable, cmd } = await window.TCPapi.antenna(store.print.atnInfo)
+      console.groupCollapsed(`%c 안테나 설정`, 'padding: 4px; background: #bcbcbc; font-bold:800;')
+      console.log('활성화 안테나:', able)
+      console.log('비활성화 안테나:', disable)
+      console.log('커맨드:', cmd)
       console.groupEnd()
-      return result
+      return { able, cmd }
     } catch (e) {
       console.error(e)
     }
   }
 
-  async onPowerGain(antennaIndex: number) {
-    const atnName = `atn${antennaIndex}`
-    const isAllAtn = antennaIndex > 4
-    const status = isAllAtn ? 'atn-all' : atnName
-    const arg = isAllAtn
-      ? [store.print.powerGain[atnName]]
-      : [store.print.powerGain[atnName], antennaIndex]
+  async onPowerGain(atnIndex: number) {
+    const arg = [store.print.powerGain[`atn${atnIndex}`], atnIndex]
+    const atnName = atnIndex == 0 ? 'atn-all' : `atn${atnIndex}`
 
     try {
       const result = await window.TCPapi.onPowerGain(arg)
       console.groupCollapsed(
-        `%c ${status.toUpperCase()}-POWER-GAIN`,
+        `%c ${atnName.toUpperCase()}-POWER-GAIN`,
         'padding: 4px; background: #bcbcbc; font-bold:800;'
       )
       console.log(result)

@@ -5,11 +5,8 @@ export default class SerialApi {
   }
   async connectSerialPort() {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('connectSerialPort').then((_result) => {
-        this.mIpcRenderer.send('connect-serial', 'serial')
-        this.mIpcRenderer.once('connect-serial', (_evt, payload) => {
-          resolve(payload)
-        })
+      this.mIpcRenderer.invoke('connectSerialPort').then((result) => {
+        return resolve(result)
       })
     })
   }

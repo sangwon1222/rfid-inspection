@@ -1,12 +1,26 @@
+import { store } from '@store/store'
+
 class DBmanager {
   async connectDB() {
     try {
-      const result = await window.DBapi.connectDB()
-      console.log('DB', result)
-      return result
+      const { ok, msg, data } = await window.DBapi.connectDB()
+
+      if (ok) {
+        store.excel.isExcelUpdated = data.length > 0
+        store.excel.data = data
+      } else {
+        store.excel.isExcelUpdated = false
+        store.excel.data = []
+      }
+
+      console.groupCollapsed(`%c DB STATUS`, 'padding: 4px; background: #bcbcbc;  font-bold:800;')
+      console.log({ ok, msg, data })
+      console.groupEnd()
+      return { ok, msg, data }
     } catch (e) {
-      console.error(e)
-      return e
+      store.excel.isExcelUpdated = false
+      store.excel.data = []
+      return { ok: false, msg: e, data: [] }
     }
   }
 

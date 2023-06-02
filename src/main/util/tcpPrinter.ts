@@ -1,5 +1,4 @@
 import idroPacket from '../packet/idroPacket'
-import { ipcMain } from 'electron'
 import Common, { TypeMiddleware } from '../common'
 import net from 'net'
 
@@ -18,52 +17,55 @@ class TCPprinter implements TypeMiddleware {
 
   async _reConnect() {
     const { host, port } = this.mTcpHost
-    const { ok, msg } = await this.connectTCP(host, port)
+    const { ok, msg } = (await this.connectTCP({ host, port })) as { ok: boolean; msg: string }
     if (!ok) console.error(msg)
     return { ok, msg }
   }
 
-  async connectTCP(host: string, port: number) {
-    this.mTcpHost = { host, port }
+  connectTCP({ host, port }: { host: string; port: number }) {
+    return new Promise((resolve, _reject) => {
+      this.mTcpHost = { host, port }
 
-    this.mTcp = net.createConnection({ host, port })
-    this.mTcp.setMaxListeners(50)
-    this.mTcp.on('connect', () => {
-      ipcMain.once('connect-status', (event, _response) => {
-        event.reply('connect-status', { ok: true, msg: 'success connect' })
+      this.mTcp = net.connect({ port, host, timeout: 3000 }, () => {
+        const result = { ok: true, msg: 'success connect', host, port }
+        resolve(result)
+      })
+
+      this.mTcp.on('timeout', () => {
+        const result = { ok: false, msg: 'timeout connect', host, port }
+        resolve(result)
+      })
+      this.mTcp.on('end', () => {
+        const result = { ok: false, msg: 'idro에서 연결끊김.(end connect)', host, port }
+        resolve(result)
+      })
+      this.mTcp.on('close', () => {
+        const result = { ok: false, msg: 'close connect', host, port }
+        resolve(result)
+      })
+      this.mTcp.on('error', () => {
+        const result = { ok: false, msg: 'error connect', host, port }
+        resolve(result)
       })
     })
-    this.mTcp.on('end', () => {
-      ipcMain.once('connect-status', (event, _response) => {
-        event.reply('connect-status', { ok: false, msg: 'end connect' })
-      })
-    })
-    this.mTcp.on('close', () => {
-      ipcMain.once('connect-status', (event, _response) => {
-        event.reply('connect-status', { ok: false, msg: 'close connect' })
-      })
-    })
-    this.mTcp.on('error', () => {
-      ipcMain.once('connect-status', (event, _response) => {
-        event.reply('connect-status', { ok: false, msg: 'error connect' })
-      })
-    })
-    const ok = this.mTcp ? this.mTcp.connecting : false
-    const msg = ok ? 'connected' : 'disconnected..'
-    return { ok, msg }
   }
 
-  antenna(atn1: number, atn2: number, atn3: number, atn4: number) {
-    const atn1Name = atn1 ? 'Atn1' : ''
-    const atn2Name = atn2 ? 'Atn2' : ''
-    const atn3Name = atn3 ? 'Atn3' : ''
-    const atn4Name = atn4 ? 'Atn4' : ''
-    const antennaCmd = `on${atn1Name}${atn2Name}${atn3Name}${atn4Name}`.trim()
-    const cmd = idroPacket[antennaCmd]
+  antenna(setting: { atn1: number; atn2: number; atn3: number; atn4: number }) {
+    const keys = Object.keys(setting) as string[]
+    const values = Object.values(setting) as number[]
 
+    let able = 'on'
+    let disable = ''
+    for (let i = 0; i < values.length; i++) {
+      if (values[i]) {
+        able += keys[i][0].toUpperCase() + keys[i].slice(1)
+      } else disable += keys[i][0].toUpperCase() + keys[i].slice(1)
+    }
+
+    const cmd = idroPacket[able]
     this.mTcp.write(idroPacket['allStop'])
-    this.mTcp.write(idroPacket[antennaCmd])
-    return { info: antennaCmd, cmd }
+    this.mTcp.write(cmd)
+    return { able: able.substring(2), disable, cmd }
   }
 
   onBuzzer() {
@@ -137,13 +139,13 @@ class TCPprinter implements TypeMiddleware {
   }
 
   onPowerGain(power: number, antennaIndex: number) {
-    const antennaCmd = antennaIndex <= 4 ? `p${antennaIndex}` : 'p'
-    const gainCmd = `${idroPacket['powerGain']} ${antennaCmd} ${power} \r\n`
+    const atnCmd = antennaIndex === 0 ? 'p' : `p${antennaIndex}`
+    const gainCmd = `${idroPacket['powerGain']} ${atnCmd} ${power} \r\n`
 
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(gainCmd)
     return {
-      atn: `[${antennaCmd[1] ? antennaCmd[1] : 'all antenna'}]`,
+      atn: `[${atnCmd[1] ? atnCmd[1] : 'all antenna'}]`,
       power: `[${power}]`,
       cmd: gainCmd
     }

@@ -2,21 +2,9 @@
 import AExcelButton from '@atoms/aExcelButton.vue'
 import { computed, onMounted } from 'vue'
 import { store } from '@store/store'
-import dbManager from '@util/dbManager'
 
 const excelHeader = computed(() => (store.excel.data[0] ? Object.keys(store.excel.data[0]) : []))
 const excelData = computed(() => store.excel.data)
-
-onMounted(async () => {
-  const { ok, msg, data } = await dbManager.connectDB()
-  if (ok) {
-    store.excel.isExcelUpdated = data.length > 0
-    store.excel.data = data
-  } else {
-    store.excel.isExcelUpdated = false
-    store.excel.data = []
-  }
-})
 
 const getEvent = async (e: DragEvent | Event) => {
   const files = (e as DragEvent).dataTransfer.files

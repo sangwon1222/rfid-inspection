@@ -1,5 +1,5 @@
 <script setup lang="ts" scoped>
-import tIdroSetting from '../tcp/tIdroSetting.vue'
+import tIdroSetting from '@pages/setIdro.vue'
 </script>
 
 <template>

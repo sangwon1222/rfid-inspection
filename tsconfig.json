@@ -11,6 +11,7 @@
     "baseUrl": "./",
     "paths":{
         "@renderer/*": ["src/renderer/src/*"],
+        "@pages/*": ["src/renderer/src/pages/*"],
         "@atoms/*": ["src/renderer/src/components/atoms/*"],
         "@template/*": ["src/renderer/src/components/template/*"],
         "@store/*": ["src/renderer/src/store/*"],

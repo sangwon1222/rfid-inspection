@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', name: 'home', component: () => import('./pages/excel.vue') },
+  { path: '/', name: '/', component: () => import('./pages/excel.vue') },
   { path: '/excel', name: 'excel', label: '발행', component: () => import('./pages/excel.vue') },
   {
     path: '/history',

@@ -25,12 +25,13 @@ class Serial implements TypeMiddleware {
   async connectSerialPort(path?: string, baudRate?: number) {
     if (path && baudRate) this.mPortOption = { path, baudRate }
 
-    if (this.mPort) this.mPort.close()
-    this.mPort = new SerialPort({
-      path: 'COM6',
-      baudRate: 9600,
-      autoOpen: false
-    })
+    if (!this.mPort) {
+      this.mPort = new SerialPort({
+        path: 'COM6',
+        baudRate: 9600,
+        autoOpen: false
+      })
+    }
 
     this.mPort.open((error) => {
       if (error) {

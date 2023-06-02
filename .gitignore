@@ -28,6 +28,7 @@ package-lock.json
 
 # Compiled output
 # *.js
+ *.mjs
 *.d.ts
 *.map
 
