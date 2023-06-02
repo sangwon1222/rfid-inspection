@@ -1,6 +1,8 @@
 bin/
 gen/
 out/
+db/
+build/
 
 # IDE files
 .idea/
@@ -25,7 +27,7 @@ package-lock.json
 .env.production.local
 
 # Compiled output
-*.js
+# *.js
 *.d.ts
 *.map
 
@@ -39,5 +41,3 @@ package-lock.json
 # OS files
 .DS_Store
 Thumbs.db
-
-todo-mysql-data
