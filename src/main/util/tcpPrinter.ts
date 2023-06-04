@@ -5,9 +5,10 @@ import net from 'net'
 class TCPprinter implements TypeMiddleware {
   private mTcp!: net.Socket
   private mTcpHost: { host: string; port: number } = { host: '', port: 0 }
+  private mIsConnected = false
 
   async _check() {
-    return Boolean(this.mTcp)
+    return this.mIsConnected
   }
 
   async _disconnect() {
@@ -28,23 +29,28 @@ class TCPprinter implements TypeMiddleware {
 
       this.mTcp = net.connect({ port, host, timeout: 3000 }, () => {
         const result = { ok: true, msg: 'success connect', host, port }
+        this.mIsConnected = true
         resolve(result)
       })
 
       this.mTcp.on('timeout', () => {
         const result = { ok: false, msg: 'timeout connect', host, port }
+        this.mIsConnected = false
         resolve(result)
       })
       this.mTcp.on('end', () => {
         const result = { ok: false, msg: 'idro에서 연결끊김.(end connect)', host, port }
+        this.mIsConnected = false
         resolve(result)
       })
       this.mTcp.on('close', () => {
         const result = { ok: false, msg: 'close connect', host, port }
+        this.mIsConnected = false
         resolve(result)
       })
       this.mTcp.on('error', () => {
         const result = { ok: false, msg: 'error connect', host, port }
+        this.mIsConnected = false
         resolve(result)
       })
     })
@@ -65,19 +71,23 @@ class TCPprinter implements TypeMiddleware {
     const cmd = idroPacket[able]
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(cmd)
-    return { able: able.substring(2), disable, cmd }
+    return { ok: true, able: able.substring(2), disable, cmd }
   }
 
   onBuzzer() {
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(idroPacket['onBuzzer'])
-    return 'ON_BUZZER'
+    this.mTcp.once('data', (data) => {
+      return { ok: true, msg: data.toString('ascii') }
+    })
   }
 
   offBuzzer() {
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(idroPacket['offBuzzer'])
-    return 'OFF_BUZZER'
+    this.mTcp.once('data', (data) => {
+      return { ok: true, msg: data.toString('ascii') }
+    })
   }
 
   getReaderState() {

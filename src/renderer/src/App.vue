@@ -10,33 +10,30 @@ import { onMounted, computed } from 'vue'
 const isLoading = computed(() => store.loading.isLoading)
 
 onMounted(async () => {
+  await dbManager.connectDB()
   await tcpManager.connectPrint()
   await serialManager.connectSerialPort()
-  await dbManager.connectDB()
 })
 </script>
 
 <template>
   <t-loading v-if="isLoading" />
   <t-gnb />
-  <div class="w-full h-full pt-40 grid grid-cols-8 border-box">
-    <div
-      class="overflow-hidden h-[calc(100vh-40px)] p-1"
-      :class="store.snbFold ? 'col-span-4 md:col-span-6' : 'col-span-8'"
-    >
+  <div class="overflow-hidden flex w-full h-screen pt-40">
+    <div :class="store.snbFold ? 'w-full' : 'w-[calc(100vw-310px)]'" class="h-full">
       <router-view />
     </div>
 
     <div
-      class="sticky top-0 min-h-full col-span-4 md:col-span-2"
-      :class="store.snbFold ? 'col-span-0 md:col-span-0' : 'col-span-4 md:col-span-2'"
+      class="fixed top-40 right-0 min-h-[calc(100vh-50px)] box-border duration-500 z-10"
+      :class="store.snbFold ? 'w-0 p-0' : 'w-310 p-1'"
     >
       <button
         class="fold-btn"
-        :class="store.snbFold ? 'after:rotate-45' : 'after:rotate-225'"
+        :class="store.snbFold ? 'after:rotate-225' : 'after:rotate-45'"
         @click="store.snbFold = !store.snbFold"
       />
-      <t-snb v-if="store.snbFold" />
+      <t-snb />
     </div>
   </div>
 </template>
@@ -46,24 +43,18 @@ onMounted(async () => {
   @apply fixed 
   top-1/2 
   right-60 
-  z-10 
+  z-20 
   duration-150  
   translate-y-2/4 
   translate-x-2/4
-  before:content-[''] 
-  before:absolute 
-  before:block 
-  before:w-60 
-  before:h-60 
-  before:rounded-full
-  before:opacity-5
   after:content-['']
   after:absolute 
   after:block 
   after:w-35
   after:h-35 
-  after:border-t-4 
-  after:border-r-4 
+  after:border-teal-600
+  after:border-t-[calc(8px)]
+  after:border-r-[calc(8px)]
   after:mt-14
   after:ml-2;
 }

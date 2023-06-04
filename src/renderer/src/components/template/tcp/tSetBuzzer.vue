@@ -6,25 +6,25 @@ import { store } from '@store/store'
 
 defineProps({ isActive: { type: Boolean, default: false } })
 
-const setAntenna = async (antennaIndex: number) => {
-  const atnName = `atn${antennaIndex}`
-  const { ok } = await TCPmanager.antenna()
-  if (ok) store.print.atnInfo[atnName] = store.print.atnInfo[atnName] ? 0 : 1
+const buzzer = async (buzzer: boolean) => {
+  const { ok, msg } = buzzer ? await TCPmanager.onBuzzer() : await TCPmanager.offBuzzer()
+  console.log(ok, msg)
+  store.print.buzzer = buzzer
 }
 </script>
 
 <template>
   <t-set-wrap>
     <div v-if="!isActive" class="absolute top-0 left-0 w-full h-full opacity-50 bg-red-400" />
-    <label> ANTENNA STATUS</label>
+    <label>BUZZER</label>
     <div class="flex flex-wrap gap-2 mt-4">
       <a-button
-        v-for="(v, i) in [1, 2, 3, 4]"
+        v-for="(v, i) in [true, false]"
         :key="i"
-        :class="store.print.atnInfo[`atn${v}`] ? 'bg-teal-300' : 'bg-gray-200'"
-        @on-parent-event="setAntenna(v)"
+        :add-style="store.print.buzzer === v ? 'bg-teal-200' : 'bg-gray-200'"
+        @on-parent-event="buzzer(v)"
       >
-        Atn{{ v }}
+        {{ v ? 'ON' : 'OFF' }}
       </a-button>
     </div>
   </t-set-wrap>

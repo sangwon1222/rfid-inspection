@@ -1,6 +1,7 @@
 <script setup lang="ts" scoped>
+import excelManager from '@renderer/util/excelManager'
 import AExcelButton from '@atoms/aExcelButton.vue'
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { store } from '@store/store'
 
 const excelHeader = computed(() => (store.excel.data[0] ? Object.keys(store.excel.data[0]) : []))
@@ -15,7 +16,7 @@ const getEvent = async (e: DragEvent | Event) => {
 }
 
 const updateExcel = async (file) => {
-  await store.excel.manager.updateExcel(file)
+  await excelManager.updateExcel(file)
 }
 
 const getCssStyle = (i: number) => {
@@ -32,41 +33,38 @@ const getCssStyle = (i: number) => {
 
 <template>
   <div class="excel-screen-wrap">
-    <div class="w-full h-full">
-      <a-excel-button
-        label="Drag & Drop A EXCEL FILE"
-        @drop-in.stop.self="getEvent"
-        @update-excel="updateExcel"
-      >
-        <div v-if="store.excel.isExcelUpdated" class="table-wrap">
-          <div class="table w-full">
-            <ul class="table-row">
-              <li
-                v-for="(v, i) in excelHeader"
-                :key="i"
-                class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 border table-cell break-all max-w-200"
-              >
-                {{ v }}
-              </li>
-            </ul>
-            <ul v-for="(v, i) in excelData" :key="i" class="table-row" :class="getCssStyle(i)">
-              <li v-for="(value, index) of v" :key="index" class="table-cell">
-                {{ value }}
-              </li>
-            </ul>
-          </div>
+    <a-excel-button
+      label="Drag & Drop A EXCEL FILE"
+      @drop-in.stop.self="getEvent"
+      @update-excel="updateExcel"
+    >
+      <div v-if="store.excel.isExcelUpdated" class="table-wrap h-[calc(100vh-130px)]">
+        <div class="relative table w-full">
+          <ul class="sticky top-0 left-0 w-full table-row">
+            <li
+              v-for="(v, i) in excelHeader"
+              :key="i"
+              class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 table-cell break-all max-w-200"
+            >
+              {{ v }}
+            </li>
+          </ul>
+          <ul v-for="(v, i) in excelData" :key="i" class="table-row" :class="getCssStyle(i)">
+            <li v-for="(value, index) of v" :key="index" class="table-cell">
+              {{ value }}
+            </li>
+          </ul>
         </div>
-      </a-excel-button>
-    </div>
+      </div>
+    </a-excel-button>
   </div>
 </template>
 
 <style scoped lang="less">
 .excel-screen-wrap {
-  @apply flex w-full h-full;
+  @apply flex w-full px-6 box-border;
   .table-wrap {
-    @apply relative overflow-auto w-full p-2 bg-white;
-    height: calc(100vh - 100px);
+    @apply relative overflow-y-auto w-full bg-white;
   }
   .table-cell {
     @apply border py-5 pr-10 pl-2 text-black break-all max-w-200;

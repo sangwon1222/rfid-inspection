@@ -6,23 +6,23 @@
   body {
     @apply flex flex-col bg-main text-slate-500 font-bold;
     font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Open Sans', sans-serif;
+      'Ubuntu', 'Cantarell', 'Open Sans', sans-serif;
     font-size: 14px;
-    -webkit-user-select:none;
-    -moz-user-select:none;
-    -ms-user-select:none;
-    user-select:none
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
   }
 }
 
-.bg-gnb{
+.bg-gnb {
   background-color: #777781;
 }
-.bg-btn{
+.bg-btn {
   background-color: #707386;
   color: #000;
-  &:hover{
-    background-color:#4b588d;
+  &:hover {
+    background-color: #4b588d;
     color: #fff;
   }
 }
@@ -37,28 +37,28 @@
   width: 10px;
   height: 10px;
 }
-*::-webkit-scrollbar-track{
+*::-webkit-scrollbar-track {
   @apply bg-slate-400;
 }
 
-*::-webkit-scrollbar-thumb{
+*::-webkit-scrollbar-thumb {
   @apply bg-teal-800;
 }
-
-
 
 * {
   padding: 0;
   margin: 0;
 }
 
-ul li ,ol li , li{
+ul li,
+ol li,
+li {
   list-style: none;
 }
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 button {
@@ -183,14 +183,14 @@ a:hover {
 
   .feature-item {
     width: 33.33%;
-    box-sizing: border-box;
+    box-sizing: box-border;
     padding: 6px;
   }
 
   article {
     background-color: rgba(194, 245, 255, 0.1);
     border-radius: 8px;
-    box-sizing: border-box;
+    box-sizing: box-border;
     padding: 12px;
     height: 100%;
   }
@@ -199,7 +199,6 @@ a:hover {
     color: #d4e8ef;
     word-break: break-all;
   }
-
 }
 
 @media (max-width: 660px) {

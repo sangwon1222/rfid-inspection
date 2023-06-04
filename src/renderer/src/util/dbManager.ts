@@ -16,6 +16,7 @@ class DBmanager {
       console.groupCollapsed(`%c DB STATUS`, 'padding: 4px; background: #bcbcbc;  font-bold:800;')
       console.log({ ok, msg, data })
       console.groupEnd()
+
       return { ok, msg, data }
     } catch (e) {
       store.excel.isExcelUpdated = false

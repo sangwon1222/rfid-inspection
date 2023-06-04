@@ -3,10 +3,10 @@ import { map } from 'lodash'
 import { reactive } from 'vue'
 import { store } from '@store/store'
 import TCPmanager from '@util/tcpManager'
+import tSetWrap from '@template/tcp/tSetWrap.vue'
 
-const state = reactive({
-  errorPowerGain: false
-})
+defineProps({ isActive: { type: Boolean, default: false } })
+const state = reactive({ errorPowerGain: false })
 
 const setPowerGain = async (antennaIndex: number) => {
   const power = store.print.powerGain[`atn${antennaIndex}`]
@@ -42,8 +42,8 @@ const onBlur = (e, atnIndex: number) => {
 </script>
 
 <template>
-  <!-- POWER GAIN -->
-  <div class="flex flex-col p-1 border">
+  <t-set-wrap>
+    <div v-if="!isActive" class="absolute top-0 left-0 w-full h-full opacity-50 bg-red-400" />
     <label> ANTENNA POWER GAIN</label>
     <label class="text-xs"> min:50 max: 310</label>
     <div class="flex flex-wrap gap-2">
@@ -70,5 +70,5 @@ const onBlur = (e, atnIndex: number) => {
         <label class="text-2xs">( 5dBm ~ 31dBm )</label>
       </div>
     </div>
-  </div>
+  </t-set-wrap>
 </template>

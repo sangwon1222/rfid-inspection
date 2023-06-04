@@ -3,7 +3,7 @@ import tIdroSetting from '@pages/setIdro.vue'
 </script>
 
 <template>
-  <div class="h-full box-border border p-1">
-    <t-idro-setting />
+  <div class="overflow-y-auto absolute w-full h-full box-border border">
+    <t-idro-setting :is-remote="true" />
   </div>
 </template>

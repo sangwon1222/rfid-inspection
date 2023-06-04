@@ -34,6 +34,7 @@ const updateExcel = async (e: DragEvent | Event) => {
     const sheetName = workbook.SheetNames[0]
     const sheet = workbook.Sheets[sheetName]
     const excelData = XLSX.utils.sheet_to_json(sheet)
+    console.log(excelData)
     store.excel.data = excelData
 
     console.timeEnd('load excel')

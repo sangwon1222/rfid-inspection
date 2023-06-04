@@ -20,22 +20,27 @@ class TCPmanager {
     }
   }
 
-  async antenna() {
+  async antenna(): Promise<{ ok: boolean; msg: string; able?: string; cmd?: string }> {
     try {
       const { atn1, atn2, atn3, atn4 } = store.print.atnInfo
       if (!atn1 && !atn2 && !atn3 && !atn4) {
         store.print.atnInfo = { atn1: 0, atn2: 0, atn3: 0, atn4: 0 }
-        return console.log('안테나 값 입력해주세요.')
+        return { ok: false, msg: '안테나 값 입력해주세요.' }
       }
-      const { able, disable, cmd } = await window.TCPapi.antenna(store.print.atnInfo)
+      const { ok, msg, able, disable, cmd } = await window.TCPapi.antenna(store.print.atnInfo)
       console.groupCollapsed(`%c 안테나 설정`, 'padding: 4px; background: #bcbcbc; font-bold:800;')
-      console.log('활성화 안테나:', able)
-      console.log('비활성화 안테나:', disable)
-      console.log('커맨드:', cmd)
+      if (ok) {
+        console.log('활성화 안테나:', able)
+        console.log('비활성화 안테나:', disable)
+        console.log('커맨드:', cmd)
+      } else {
+        console.log(msg)
+      }
       console.groupEnd()
-      return { able, cmd }
+      return { ok, msg, able, cmd }
     } catch (e) {
       console.error(e)
+      return { ok: false, msg: e.message }
     }
   }
 
@@ -57,12 +62,28 @@ class TCPmanager {
     }
   }
 
-  async onBuzzer() {
-    //
+  async onBuzzer(): Promise<{ ok: boolean; msg: string }> {
+    try {
+      const result = await window.TCPapi.onBuzzer()
+      console.groupCollapsed(`%c BUZZER`, 'padding: 4px; background: #bcbcbc; font-bold:800;')
+      console.log(result)
+      console.groupEnd()
+      return result
+    } catch (e) {
+      return { ok: false, msg: e.message }
+    }
   }
 
-  async offBuzzer() {
-    //
+  async offBuzzer(): Promise<{ ok: boolean; msg: string }> {
+    try {
+      const result = await window.TCPapi.offBuzzer()
+      console.groupCollapsed(`%c BUZZER`, 'padding: 4px; background: #bcbcbc; font-bold:800;')
+      console.log(result)
+      console.groupEnd()
+      return result
+    } catch (e) {
+      return { ok: false, msg: e.message }
+    }
   }
 
   async onStop() {

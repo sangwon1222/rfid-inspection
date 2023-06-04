@@ -11,6 +11,6 @@
   padding: 0 20px;
   height: 100px;
   border-top: 2px rgba(255, 255, 255, 0.1) solid;
-  box-sizing: border-box;
+  box-sizing: box-border;
 }
 </style>
