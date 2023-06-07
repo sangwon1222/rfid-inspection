@@ -1,27 +1,25 @@
 <script setup lang="ts" scoped>
-import tSetWrap from '@template/tcp/tSetWrap.vue'
+import tSetWrap from '@template/idro/tSetWrap.vue'
 import TCPmanager from '@util/tcpManager'
 import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'
 
-defineProps({ isActive: { type: Boolean, default: false } })
-
 const setAntenna = async (antennaIndex: number) => {
   const atnName = `atn${antennaIndex}`
+  store.idro.atnInfo[atnName] = store.idro.atnInfo[atnName] ? 0 : 1
   const { ok } = await TCPmanager.antenna()
-  if (ok) store.print.atnInfo[atnName] = store.print.atnInfo[atnName] ? 0 : 1
+  if (!ok) store.idro.atnInfo[atnName] = !store.idro.atnInfo[atnName]
 }
 </script>
 
 <template>
   <t-set-wrap>
-    <div v-if="!isActive" class="absolute top-0 left-0 w-full h-full opacity-50 bg-red-400" />
     <label> ANTENNA STATUS</label>
-    <div class="flex flex-wrap gap-2 mt-4">
+    <div class="flex flex-wrap gap-2">
       <a-button
         v-for="(v, i) in [1, 2, 3, 4]"
         :key="i"
-        :class="store.print.atnInfo[`atn${v}`] ? 'bg-teal-300' : 'bg-gray-200'"
+        :class="store.idro.atnInfo[`atn${v}`] ? 'bg-teal-300' : 'bg-gray-200'"
         @on-parent-event="setAntenna(v)"
       >
         Atn{{ v }}

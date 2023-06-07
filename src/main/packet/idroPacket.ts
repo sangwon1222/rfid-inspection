@@ -19,12 +19,11 @@ export default {
    */
   // Reader password ‘0’
   // >x w 0
+  setNotPassWrite: '>x w 0  \r\n',
   // EPC Bank 1word “1234” write
   // >w 1 2 1234
-  notPassWriteTag1: '>x w 0  \r\n',
-  // @TODO
-  notPassWriteTag2: '>w 1 2 ?? \r\n',
-  // notPassWriteTag2: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
+  notPassWriteTag: '>w 1 2 ?? \r\n',
+  // notPassWriteTag: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
 
   reset: '>E 1 2 6\r\n',
   start: '>start\r\n',

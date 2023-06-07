@@ -12,7 +12,7 @@ const changeValue = () => {
   } else {
     state.power = state.power === 300 ? (state.power = 310) : (state.power = state.power + 50)
   }
-  store.print.powerGain = state.power
+  store.idro.powerGain = state.power
 }
 </script>
 

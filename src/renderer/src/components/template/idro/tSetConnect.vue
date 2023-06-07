@@ -11,11 +11,13 @@ const setConnect = async () => {
 const changeHost = (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   console.log(target.value)
+  store.idro.changedInfo.host = target.value
 }
 
 const changePort = (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   console.log(target.value)
+  store.idro.changedInfo.port = +target.value
 }
 const fold = (e) => {
   const target = e.currentTarget.parentElement as HTMLDivElement
@@ -36,7 +38,7 @@ const fold = (e) => {
   >
     <button
       class="absolute top-0 p-2 w-full border text-center"
-      :class="store.print.connect ? 'text-teal-300' : 'text-red-400'"
+      :class="store.idro.connect ? 'text-teal-300' : 'text-red-400'"
       @click="fold"
     >
       CONNECT STATUS
@@ -44,13 +46,13 @@ const fold = (e) => {
 
     <button
       class="flex flex-col w-150 items-center border rounded p-2 mt-50"
-      :class="store.print.connect ? 'bg-teal-300 text-gray-600' : 'bg-red-400 text-white'"
+      :class="store.idro.connect ? 'bg-teal-300 text-gray-600' : 'bg-red-400 text-white'"
       @click="setConnect()"
     >
-      {{ store.print.connectMsg }}
+      {{ store.idro.connectMsg }}
     </button>
 
-    <a-label-input label="host:" :value="store.print.default.host" @on-change="changeHost" />
-    <a-label-input label="port:" :value="`${store.print.default.port}`" @on-change="changePort" />
+    <a-label-input label="host:" :value="store.idro.default.host" @on-change="changeHost" />
+    <a-label-input label="port:" :value="`${store.idro.default.port}`" @on-change="changePort" />
   </div>
 </template>

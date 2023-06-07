@@ -3,12 +3,12 @@ import { store } from '../../store/store'
 import { reactive, computed } from 'vue'
 
 const state = reactive({
-  atnInfo: computed(() => store.print.atnInfo)
+  atnInfo: computed(() => store.idro.atnInfo)
 })
 
 const changeValue = (e) => {
   const index = +e.currentTarget.value - 1
-  store.print.atnInfo[index] = state.atnInfo[index] === 1 ? 0 : 1
+  store.idro.atnInfo[index] = state.atnInfo[index] === 1 ? 0 : 1
 }
 </script>
 

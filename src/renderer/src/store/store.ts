@@ -18,14 +18,18 @@ export const store = reactive({
     checkedRFID: [],
     isExcelUpdated: false
   },
-  print: {
+  idro: {
     default: { host: '192.168.9.6', port: 5578 },
+    changedInfo: { host: '', port: 0 },
     connect: false,
-    encodeColumn: 'epc',
+    reading: false,
+    writing: false,
+    writeText: '',
+    byteLength: 12,
     connectMsg: 'disconnect...',
     atnInfo: { atn1: 1, atn2: 0, atn3: 0, atn4: 0 },
     powerGain: { atn1: 300, atn2: 300, atn3: 300, atn4: 300, atn0: 300 /**atn0=>모든 안테나**/ },
-    buzzer: true,
+    onBuzzer: true,
     isInspectStop: false
   },
   serial: {

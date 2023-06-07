@@ -15,7 +15,7 @@ const router = useRouter()
     <div class="grid grid-cols-2 gap-2 width-fit">
       <button
         class="border-2 rounded px-4"
-        :class="store.print.connect ? 'bg-teal-300' : 'bg-red-500 text-white'"
+        :class="store.idro.connect ? 'bg-teal-300' : 'bg-red-500 text-white'"
         @click="router.push('set-idro')"
       >
         TCP (IDRO)

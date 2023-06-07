@@ -16,7 +16,7 @@ const state = reactive({
   isDragEventStop: false,
   popupPos: [0, 0],
   statusInfo: computed(() => {
-    const { connect, connectMsg } = store.print
+    const { connect, connectMsg } = store.idro
     return { ok: connect, msg: connectMsg }
   }),
   writedRFID: [],
@@ -44,10 +44,10 @@ const startScan = async () => {
   const { length } = store.excel.data
   state.rfidOk = []
 
-  store.print.isInspectStop = false
+  store.idro.isInspectStop = false
 
   for (let i = 0; i < length; i++) {
-    if (store.print.isInspectStop) {
+    if (store.idro.isInspectStop) {
       stopScan()
       break
     }
@@ -65,7 +65,7 @@ const startScan = async () => {
       `padding:5px; background: #000; color: #fff;`
     )
     await checkRFID(store.excel.data[i].epc, i)
-    if (store.print.isInspectStop) {
+    if (store.idro.isInspectStop) {
       stopScan()
       break
     }
@@ -81,17 +81,17 @@ const startScan = async () => {
 }
 
 const checkRFID = async (epc: string, index: number) => {
-  if (store.print.isInspectStop) return
+  if (store.idro.isInspectStop) return
   if (state.writedRFID.length < 2) {
     await writeRFID(epc, index)
   }
 }
 
 const writeRFID = async (epc: string, index: number) => {
-  if (store.print.isInspectStop) return
+  if (store.idro.isInspectStop) return
   const { ok, msg } = (await PrintIpcRenderer.onWrite(epc)) as { ok: boolean; msg: string }
   if (!ok) {
-    store.print.isInspectStop = true
+    store.idro.isInspectStop = true
     alert(msg)
     return
   }

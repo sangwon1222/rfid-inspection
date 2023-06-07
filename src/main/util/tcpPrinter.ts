@@ -2,6 +2,16 @@ import idroPacket from '../packet/idroPacket'
 import Common, { TypeMiddleware } from '../common'
 import net from 'net'
 
+/**
+ * @param byteLength
+ * @description 12자리 => data.slice(3, -3).toString()
+ * @description 11자리 => data.slice(3,-5).toString()
+ * @description 10자리 => data.slice(3,-7).toString()
+ * @description ...
+ * @returns 자리수의 data
+ */
+const lastByteAdress = (byteLength: number) => -2 * byteLength + 27
+
 class TCPprinter implements TypeMiddleware {
   private mTcp!: net.Socket
   private mTcpHost: { host: string; port: number } = { host: '', port: 0 }
@@ -25,34 +35,27 @@ class TCPprinter implements TypeMiddleware {
 
   connectTCP({ host, port }: { host: string; port: number }) {
     return new Promise((resolve, _reject) => {
+      if (this.mTcp) this.mTcp.destroy()
       this.mTcpHost = { host, port }
 
-      this.mTcp = net.connect({ port, host, timeout: 3000 }, () => {
+      this.mTcp = net.createConnection({ port, host })
+      this.mTcp.on('connect', () => {
+        console.log('연결이 수립되었습니다.')
         const result = { ok: true, msg: 'success connect', host, port }
         this.mIsConnected = true
+
         resolve(result)
       })
 
-      this.mTcp.on('timeout', () => {
-        const result = { ok: false, msg: 'timeout connect', host, port }
-        this.mIsConnected = false
-        resolve(result)
-      })
-      this.mTcp.on('end', () => {
-        const result = { ok: false, msg: 'idro에서 연결끊김.(end connect)', host, port }
-        this.mIsConnected = false
-        resolve(result)
-      })
-      this.mTcp.on('close', () => {
-        const result = { ok: false, msg: 'close connect', host, port }
-        this.mIsConnected = false
-        resolve(result)
-      })
-      this.mTcp.on('error', () => {
-        const result = { ok: false, msg: 'error connect', host, port }
-        this.mIsConnected = false
-        resolve(result)
-      })
+      const list = ['timeout', 'end', 'close', 'error']
+      for (const status of list) {
+        this.mTcp.on(status, (e) => {
+          console.log(status, e)
+          const result = { ok: false, msg: status + ' connect', host, port }
+          this.mIsConnected = false
+          resolve(result)
+        })
+      }
     })
   }
 
@@ -69,7 +72,12 @@ class TCPprinter implements TypeMiddleware {
     }
 
     const cmd = idroPacket[able]
+
     this.mTcp.write(idroPacket['allStop'])
+
+    this.mTcp.once('data', (data) => {
+      console.log('ANTTENA', data)
+    })
     this.mTcp.write(cmd)
     return { ok: true, able: able.substring(2), disable, cmd }
   }
@@ -77,51 +85,43 @@ class TCPprinter implements TypeMiddleware {
   onBuzzer() {
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(idroPacket['onBuzzer'])
-    this.mTcp.once('data', (data) => {
-      return { ok: true, msg: data.toString('ascii') }
-    })
+    return { ok: true, msg: idroPacket['onBuzzer'] }
   }
 
   offBuzzer() {
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(idroPacket['offBuzzer'])
-    this.mTcp.once('data', (data) => {
-      return { ok: true, msg: data.toString('ascii') }
-    })
+    return { ok: true, msg: idroPacket['offBuzzer'] }
   }
 
   getReaderState() {
     return new Promise((resolve, _reject) => {
       this.mTcp.write(idroPacket['getReaderState'])
       this.mTcp.once('data', (data) => {
-        console.log(data)
-        console.log(data.toString('ascii'))
         return resolve(data.toString('ascii'))
       })
     })
   }
 
-  onMemoryRead() {
+  onMemoryRead(byteLength: number) {
     return new Promise((resolve, _reject) => {
+      const last = lastByteAdress(byteLength)
+
       this.mTcp.write(idroPacket['allStop'])
       this.mTcp.write(idroPacket['memoryRead'])
 
       this.mTcp.once('data', (data) => {
-        const hex = data.slice(3).toString()
-        const result = Common.hex_to_ascii(hex)
-        console.log({ read: result, length: result.length })
-        return resolve(result)
-
-        // const hex = data.slice(3, -4).toString() // 판교용
-        // return resolve(Common.hex_to_ascii(hex))
+        const hex = data.slice(3, -last).toString()
+        const msg = Common.hex_to_ascii(hex)
+        return resolve({ ok: true, msg })
       })
     })
   }
 
-  onWrite(encode: string) {
+  onMemoryWrite(encode: string) {
     return new Promise((resolve, _reject) => {
       const hex = Common.ascii_to_hexa(encode)
-      const cmd = `${idroPacket['notPassWriteTag2']} ${hex} \r\n`
+      const cmd = idroPacket['notPassWriteTag'].replace('??', hex)
 
       this.mTcp.write(cmd)
 
@@ -133,10 +133,10 @@ class TCPprinter implements TypeMiddleware {
           '03': 'Memory Overrun',
           '04': 'Memory Locked'
         }
+        const status = data.toString().slice(3, -2)
         return resolve({
-          encode,
-          result: result[data.toString().slice(3, -2)],
-          command: data.toString()
+          ok: status === '01',
+          msg: result[status]
         })
       })
     })
@@ -154,10 +154,12 @@ class TCPprinter implements TypeMiddleware {
 
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(gainCmd)
+
+    const atn = atnCmd[1] ? `${atnCmd[1]}번` : '모든'
+    const msg = `[${atn} 안테나]: POWER [ ${power} ] / cmd: ${gainCmd}`
     return {
-      atn: `[${atnCmd[1] ? atnCmd[1] : 'all antenna'}]`,
-      power: `[${power}]`,
-      cmd: gainCmd
+      ok: true,
+      msg
     }
   }
 }

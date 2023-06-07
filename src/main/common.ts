@@ -10,6 +10,7 @@ export class Common {
   async registMiddleware(obj: TypeMiddleware) {
     const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(obj))
     const exclude = ['constructor', '_reConnect', '_check', '_disconnect']
+
     for (const property of properties) {
       if (exclude.includes(property)) continue
 
