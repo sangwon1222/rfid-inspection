@@ -4,48 +4,44 @@ import Common, { TypeMiddleware } from '../common'
 
 class Serial implements TypeMiddleware {
   private mPort!: SerialPort
+  private mPortConnected = false
   private mPortOption: { path: string; baudRate: number } = { path: '', baudRate: 0 }
   get list() {
     return SerialPort.list()
   }
 
   async _check() {
-    return Boolean(this.mPort)
+    return this.mPortConnected
   }
   async _disconnect() {
     if (this.mPort) this.mPort.close()
   }
 
   async _reConnect() {
-    const { ok, msg } = await this.connectSerialPort()
+    const { path, baudRate } = this.mPortOption
+    const { ok, msg } = await this.connectSerialPort(path, baudRate)
     if (!ok) console.error(msg)
     return { ok, msg }
   }
 
-  async connectSerialPort(path?: string, baudRate?: number) {
+  async connectSerialPort(path: string, baudRate: number) {
     if (path && baudRate) this.mPortOption = { path, baudRate }
 
     if (!this.mPort) {
-      this.mPort = new SerialPort({
-        path: 'COM6',
-        baudRate: 9600,
-        autoOpen: false
-      })
+      this.mPort = new SerialPort({ path, baudRate, autoOpen: false })
     }
 
     this.mPort.open((error) => {
       if (error) {
-        ipcMain.once('connect-serial', (event, _response) => {
-          event.reply('connect-serial', { ok: false, msg: error })
-        })
+        this.mPortConnected = false
         return { ok: false, msg: error }
       }
 
       try {
         this.mPort.write('connect')
-        ipcMain.once('connect-serial', (event, _response) => {
-          event.reply('connect-serial', { ok: true, msg: 'success connect serial port' })
-        })
+        this.mPortConnected = true
+        console.log('SERIAL PORT 연결 성공')
+
         return { ok: true, msg: 'connect-serial' }
       } catch (e) {
         return { ok: false, msg: e }
@@ -54,9 +50,9 @@ class Serial implements TypeMiddleware {
     return { ok: true, msg: 'connect-serial' }
   }
 
-  async getStartScanCode() {
+  async getStartScan() {
     return new Promise((resolve, _reject) => {
-      this.mPort.on('data', (data) => {
+      this.mPort.once('data', (data) => {
         // H02 H45 H53 H03
         const hex = Buffer.from([0x02, 0x45, 0x53, 0x03])
         const feed = Common.hex_to_hexa(hex)

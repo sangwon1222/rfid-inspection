@@ -16,7 +16,10 @@ export class Common {
 
       ipcMain.handle(property, async (_event, res) => {
         const isConnect = property.substring(0, 7) === 'connect' ? true : await obj._check()
-        if (!isConnect) return { ok: false, msg: 'disconnect...' }
+        if (!isConnect) {
+          const { ok, msg } = await obj._reConnect()
+          return { ok, msg }
+        }
 
         switch (typeof res) {
           case 'object':

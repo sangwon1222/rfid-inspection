@@ -12,6 +12,17 @@ import net from 'net'
  */
 const lastByteAdress = (byteLength: number) => -2 * byteLength + 27
 
+const getIdroStatus = (tcp: net.Socket, cmd: string) => {
+  return new Promise((resolve, _reject) => {
+    tcp.write(cmd)
+    tcp.once('data', (data) => {
+      setTimeout(() => {
+        resolve(data.toString())
+      }, 1000)
+    })
+  })
+}
+
 class TCPprinter implements TypeMiddleware {
   private mTcp!: net.Socket
   private mTcpHost: { host: string; port: number } = { host: '', port: 0 }
@@ -22,8 +33,8 @@ class TCPprinter implements TypeMiddleware {
   }
 
   async _disconnect() {
-    await this.mTcp.end()
-    await this.mTcp.destroy()
+    this.mTcp.end()
+    this.mTcp.destroy()
   }
 
   async _reConnect() {
@@ -39,11 +50,26 @@ class TCPprinter implements TypeMiddleware {
       this.mTcpHost = { host, port }
 
       this.mTcp = net.createConnection({ port, host })
-      this.mTcp.on('connect', () => {
-        console.log('연결이 수립되었습니다.')
+      this.mTcp.on('connect', async () => {
+        console.log('IDRO TCP 연결 성공')
         const result = { ok: true, msg: 'success connect', host, port }
         this.mIsConnected = true
 
+        // const buzzer = await getIdroStatus(this.mTcp, idroPacket['getBuzzer'])
+        // console.log({ buzzer })
+        // const atn = await getIdroStatus(this.mTcp, idroPacket['getAtn'])
+        // console.log({ atn })
+        // const p1 = await getIdroStatus(this.mTcp, idroPacket['getPowerGainP1'])
+        // console.log({ p1 })
+        // const p2 = await getIdroStatus(this.mTcp, idroPacket['getPowerGainP2'])
+        // console.log({ p2 })
+        // const p3 = await getIdroStatus(this.mTcp, idroPacket['getPowerGainP3'])
+        // console.log({ p3 })
+        // const p4 = await getIdroStatus(this.mTcp, idroPacket['getPowerGainP4'])
+        // console.log({ p4 })
+        this.mTcp.write(idroPacket['onBuzzer'])
+        this.mTcp.write(idroPacket['onAtn1'])
+        this.mTcp.write(idroPacket['powerGain'].replace('??', 'p').replace('??', '300'))
         resolve(result)
       })
 
@@ -74,11 +100,8 @@ class TCPprinter implements TypeMiddleware {
     const cmd = idroPacket[able]
 
     this.mTcp.write(idroPacket['allStop'])
-
-    this.mTcp.once('data', (data) => {
-      console.log('ANTTENA', data)
-    })
     this.mTcp.write(cmd)
+
     return { ok: true, able: able.substring(2), disable, cmd }
   }
 
@@ -150,17 +173,14 @@ class TCPprinter implements TypeMiddleware {
 
   onPowerGain(power: number, antennaIndex: number) {
     const atnCmd = antennaIndex === 0 ? 'p' : `p${antennaIndex}`
-    const gainCmd = `${idroPacket['powerGain']} ${atnCmd} ${power} \r\n`
+    const gainCmd = idroPacket['powerGain'].replace('??', atnCmd).replace('??', power.toString())
 
     this.mTcp.write(idroPacket['allStop'])
     this.mTcp.write(gainCmd)
 
     const atn = atnCmd[1] ? `${atnCmd[1]}번` : '모든'
     const msg = `[${atn} 안테나]: POWER [ ${power} ] / cmd: ${gainCmd}`
-    return {
-      ok: true,
-      msg
-    }
+    return { ok: true, msg }
   }
 }
 

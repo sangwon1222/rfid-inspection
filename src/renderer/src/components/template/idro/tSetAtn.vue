@@ -1,5 +1,5 @@
 <script setup lang="ts" scoped>
-import tSetWrap from '@template/idro/tSetWrap.vue'
+import tSetWrap from '@template/tSetWrap.vue'
 import TCPmanager from '@util/tcpManager'
 import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'

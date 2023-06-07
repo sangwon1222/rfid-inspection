@@ -57,6 +57,7 @@ export default {
   // set Buzzer volumn
   onBuzzer: '>x b 1\r\n',
   offBuzzer: '>x b 0\r\n',
+  getBuzzer: '>y b\r\n',
 
   // set Atnenna port
   onAtn1: '>x e 1\r\n',
@@ -75,6 +76,8 @@ export default {
   onAtn2Atn3Atn4: '>x e 14\r\n',
   onAtn1Atn2Atn3Atn4: '>x e 15\r\n',
 
+  getAtn: '>y e\r\n',
+
   //set Atnenna Switch time
   setAtnSecond1: '>x j 1000\r\n',
   setAtnSecond2: '>x j 2000\r\n',
@@ -82,7 +85,11 @@ export default {
   setAtnSecondMax: '>x j 10000\r\n',
 
   // power gain
-  powerGain: '>x' // 50 ~ 310
+  powerGain: '>x ?? ?? \r\n', // 50 ~ 310
+  getPowerGainP1: '>y p1\r\n', // 50 ~ 310
+  getPowerGainP2: '>y p2\r\n', // 50 ~ 310
+  getPowerGainP3: '>y p3\r\n', // 50 ~ 310
+  getPowerGainP4: '>y p4\r\n' // 50 ~ 310
   // powerGainWeek: '>x p 50\r\n', // 50 ~ 310
   // powerGainAtn1Week: '>x p1 100\r\n'
 }

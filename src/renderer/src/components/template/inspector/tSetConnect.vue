@@ -1,25 +1,24 @@
 <script setup lang="ts" scoped>
 import aLabelInput from '@atoms/aLabelInput.vue'
-import TCPmanager from '@util/tcpManager'
+import serialManager from '@util/serialManager'
 import { store } from '@store/store'
 
 let isFold = false
 const setConnect = async () => {
-  if (store.idro.connect) return
-  await TCPmanager.connectPrint()
+  if (store.inspector.connect) return
+  await serialManager.connectSerialPort()
 }
 
-const changeHost = (e: InputEvent) => {
+const changeCom = (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
-  console.log(target.value)
-  store.idro.changedInfo.host = target.value
+  store.inspector.default.path = target.value
 }
 
-const changePort = (e: InputEvent) => {
+const changeBaud = (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
-  console.log(target.value)
-  store.idro.changedInfo.port = +target.value
+  store.inspector.default.baudRate = +target.value
 }
+
 const fold = (e) => {
   const target = e.currentTarget.parentElement as HTMLDivElement
   isFold = !isFold
@@ -42,7 +41,7 @@ const fold = (e) => {
       :class="store.idro.connect ? 'text-teal-600' : 'text-red-400'"
       @click="fold"
     >
-      IDRO STATUS
+      INSPECTOR STATUS
     </button>
 
     <button
@@ -53,7 +52,11 @@ const fold = (e) => {
       {{ store.idro.connectMsg }}
     </button>
 
-    <a-label-input label="host:" :value="store.idro.default.host" @on-change="changeHost" />
-    <a-label-input label="port:" :value="`${store.idro.default.port}`" @on-change="changePort" />
+    <a-label-input label="COM:" :value="store.inspector.default.path" @on-change="changeCom" />
+    <a-label-input
+      label="Baud:"
+      :value="`${store.inspector.default.baudRate}`"
+      @on-change="changeBaud"
+    />
   </div>
 </template>

@@ -19,7 +19,7 @@ const routes = [
     path: '/set-serial',
     name: 'set-serial',
     label: 'SERIAL 설정',
-    component: () => import('./pages/setConnect.vue')
+    component: () => import('./pages/setInspector.vue')
   },
   {
     path: '/404',

@@ -3,35 +3,29 @@ export default class SerialApi {
   constructor(ipcRenderer) {
     this.mIpcRenderer = ipcRenderer
   }
-  async connectSerialPort() {
+  async connectSerialPort(path, baudRate) {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('connectSerialPort').then((result) => {
-        return resolve(result)
-      })
+      this.mIpcRenderer
+        .invoke('connectSerialPort', [path, baudRate])
+        .then((result) => resolve(result))
     })
   }
 
-  async getStartScanCode() {
+  async getStartScan() {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('getStartScanCode').then((result) => {
-        return resolve(result)
-      })
+      this.mIpcRenderer.invoke('getStartScan').then((result) => resolve(result))
     })
   }
 
   async defective() {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('defective').then((result) => {
-        return resolve(result)
-      })
+      this.mIpcRenderer.invoke('defective').then((result) => resolve(result))
     })
   }
 
   async passed() {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('passed').then((result) => {
-        return resolve(result)
-      })
+      this.mIpcRenderer.invoke('passed').then((result) => resolve(result))
     })
   }
 }

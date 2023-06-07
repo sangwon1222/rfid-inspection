@@ -22,7 +22,7 @@ const router = useRouter()
       </button>
       <button
         class="border-2 rounded px-4"
-        :class="store.serial.connect ? 'bg-teal-300' : 'bg-red-500 text-white'"
+        :class="store.inspector.connect ? 'bg-teal-300' : 'bg-red-500 text-white'"
         @click="router.push('set-serial')"
       >
         SERIAL (검수기)

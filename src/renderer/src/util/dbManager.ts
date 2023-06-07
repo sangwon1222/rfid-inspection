@@ -5,16 +5,12 @@ class DBmanager {
     try {
       const { ok, msg, data } = await window.DBapi.connectDB()
 
-      if (ok) {
-        store.excel.isExcelUpdated = data.length > 0
-        store.excel.data = data
-      } else {
-        store.excel.isExcelUpdated = false
-        store.excel.data = []
-      }
+      store.excel.data = ok ? data : []
+      store.excel.isExcelUpdated = store.excel.data.length > 0
 
       console.groupCollapsed(`%c DB STATUS`, 'padding: 4px; background: #bcbcbc;  font-bold:800;')
-      console.log({ ok, msg, data })
+      console.log(msg)
+      console.log(data)
       console.groupEnd()
 
       return { ok, msg, data }

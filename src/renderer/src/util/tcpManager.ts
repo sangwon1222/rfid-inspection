@@ -3,6 +3,7 @@ import { store } from '@store/store'
 class TCPmanager {
   async connectPrint() {
     try {
+      store.idro.connect = true
       const { host, port } = store.idro.default
       const { ok, msg } = await window.TCPapi.connectPrint({ host, port })
       store.idro.connect = ok

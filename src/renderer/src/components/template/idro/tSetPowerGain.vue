@@ -3,7 +3,7 @@ import { map } from 'lodash'
 import { reactive } from 'vue'
 import { store } from '@store/store'
 import TCPmanager from '@util/tcpManager'
-import tSetWrap from '@template/idro/tSetWrap.vue'
+import tSetWrap from '@template/tSetWrap.vue'
 
 const state = reactive({ errorPowerGain: false })
 
