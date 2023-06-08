@@ -1,7 +1,4 @@
-interface TypeObjectValueNumber {
-  [key: string]: number
-}
-interface TypeObjectValueAny {
+interface TypeObject {
   [key: string]: any
 }
 
@@ -10,25 +7,25 @@ export default class TCPApi {
   constructor(ipcRenderer: Electron.IpcRenderer) {
     this.mIpcRenderer = ipcRenderer
   }
-  async connectPrint({ host, port }: TypeObjectValueAny) {
+
+  async connectPrint({ host, port }: TypeObject) {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('connectTCP', { host, port }).then((result) => resolve(result))
+      const params = { host, port }
+      this.mIpcRenderer.invoke('connectTCP', params).then((result) => resolve(result))
     })
   }
 
-  async antenna({ atn1, atn2, atn3, atn4 }: TypeObjectValueNumber) {
+  async antenna({ atn1, atn2, atn3, atn4 }: TypeObject) {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer
-        .invoke('antenna', { atn1, atn2, atn3, atn4 })
-        .then((result: any) => resolve(result))
+      const params = { atn1, atn2, atn3, atn4 }
+      this.mIpcRenderer.invoke('antenna', params).then((result: any) => resolve(result))
     })
   }
 
   async onPowerGain(arg?: any[]) {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer
-        .invoke('onPowerGain', arg ? arg : null)
-        .then(({ ok, msg }: TypeObjectValueAny) => resolve({ ok, msg }))
+      const params = arg ? arg : null
+      this.mIpcRenderer.invoke('onPowerGain', params).then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 
@@ -58,9 +55,8 @@ export default class TCPApi {
 
   async onMemoryRead(byteLength: number) {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer
-        .invoke('onMemoryRead', [byteLength])
-        .then(({ ok, msg }: TypeObjectValueAny) => resolve({ ok, msg }))
+      const params = [byteLength]
+      this.mIpcRenderer.invoke('onMemoryRead', params).then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 
@@ -68,7 +64,7 @@ export default class TCPApi {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer
         .invoke('onMemoryWrite', [encode])
-        .then(({ ok, msg }: TypeObjectValueAny) => resolve({ ok, msg }))
+        .then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 }

@@ -1,5 +1,7 @@
 <script setup lang="ts" scoped>
+import serialManager from '@renderer/util/serialManager'
 import excelManager from '@renderer/util/excelManager'
+import aButton from '@atoms/aButton.vue'
 import dbManager from '@util/dbManager'
 import { store } from '@store/store'
 
@@ -16,6 +18,8 @@ const deleteAll = async () => {
     const { data } = await dbManager.read()
     initExcel()
     store.excel.data = data
+  } else {
+    alert(msg)
   }
 }
 
@@ -29,6 +33,10 @@ const updateExcel = async (e: Event) => {
   await excelManager.updateExcel(target.files[0])
   store.loading.init()
 }
+
+const inspectStart = async () => {
+  await serialManager.inspectStart()
+}
 </script>
 
 <template>
@@ -37,28 +45,37 @@ const updateExcel = async (e: Event) => {
       <button
         class="w-60 h-60 rounded border text-white hover:bg-gray-200 hover:text-gray-800"
         for="xlf"
+        label="EXCEL UPLOAD"
       >
         <input id="xlf" type="file" name="xlfile" @change="updateExcel" />
         EXCEL UPLOAD
       </button>
     </div>
 
-    <div class="filebox">
-      <button
-        class="w-60 h-60 rounded border text-white bg-red-500 hover:bg-red-800"
-        @click="deleteAll"
-      >
-        DELETE ALL
-      </button>
+    <a-button
+      custom-style="w-60 h-60 rounded border text-white bg-red-500 hover:bg-red-800"
+      label="DELETE ALL"
+      @on-parent-event="deleteAll"
+    />
+
+    <div class="flex items-end">
+      <a-button
+        custom-style="w-60 h-60 rounded border text-white"
+        :add-style="`${store.inspector.isInspecting ? 'bg-teal-400' : 'bg-gray-200'}`"
+        label="검수"
+        @on-parent-event="inspectStart"
+      />
+
+      <label v-if="store.inspector.isInspecting">{{ store.inspector.isInspectMsg }}</label>
     </div>
   </div>
 </template>
 
 <style lang="less" scoped>
 .filebox {
-  @apply relative flex w-60 h-60 box-border border-gray-600;
+  @apply relative flex w-60 h-60 box-border border-gray-600 cursor-pointer;
   input[type='file'] {
-    @apply absolute top-0 left-0 w-60 h-60 opacity-0 cursor-pointer;
+    @apply absolute top-0 left-0 w-60 h-60 opacity-0;
   }
 }
 </style>

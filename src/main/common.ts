@@ -1,5 +1,11 @@
 import { ipcMain } from 'electron'
 
+export interface TypeResponse {
+  ok: boolean
+  msg: string
+  result?: any
+}
+
 export interface TypeMiddleware {
   _check(): Promise<boolean>
   _reConnect(): Promise<{ ok: boolean; msg: string } | any>

@@ -22,8 +22,11 @@ const write = async () => {
 
 const onInputWriteData = (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
+  // if (target.value.length % 2) return
   store.idro.writeText = target.value
   state.error = ''
+  if (store.idro.writeText.length > store.idro.byteLength)
+    store.idro.byteLength = store.idro.writeText.length
 }
 
 const onInputByteLength = (e: InputEvent) => {
@@ -68,9 +71,10 @@ const setByteLength = () => {
         ref="refWrite"
         type="text"
         class="rounded"
-        :maxlength="store.idro.byteLength"
+        maxlength="12"
         :value="store.idro.writeText"
         @click="(e) => (e.currentTarget as HTMLInputElement).select()"
+        @keydown.enter="write"
         @input="onInputWriteData"
       />
     </div>

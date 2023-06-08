@@ -6,7 +6,6 @@ const total = computed(() => store.loading.total)
 const progress = computed(() => store.loading.progress)
 
 watch(progress, () => {
-  console.log(progress)
   const bar = document.getElementById('progress-bar') as HTMLDivElement
   bar.style.width = `${Math.ceil((progress.value / total.value) * 800)}px`
 })

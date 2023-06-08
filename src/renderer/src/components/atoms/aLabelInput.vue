@@ -14,7 +14,7 @@ defineEmits(['onChange'])
       type="text"
       class="w-120 px-1 border-2"
       :value="value"
-      @keydown.self="(e) => (e.currentTarget as HTMLInputElement).blur()"
+      @keydown.enter.self="(e) => (e.currentTarget as HTMLInputElement).blur()"
       @blur.self="$emit('onChange', $event)"
     />
   </div>

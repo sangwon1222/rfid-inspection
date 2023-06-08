@@ -1,58 +1,63 @@
 <script setup lang="ts" scoped>
 import aLabelInput from '@atoms/aLabelInput.vue'
 import serialManager from '@util/serialManager'
+import { reactive, computed } from 'vue'
 import { store } from '@store/store'
 
-let isFold = false
+const state = reactive({ isFold: false })
+const statusColor = computed(() => {
+  switch (store.inspector.connect) {
+    case true:
+      return 'bg-teal-300 text-gray-600'
+    case false:
+      return 'bg-red-400 text-white'
+    default:
+      return 'bg-gray-600 text-white'
+  }
+})
+
 const setConnect = async () => {
-  if (store.inspector.connect) return
   await serialManager.connectSerialPort()
 }
 
-const changeCom = (e: InputEvent) => {
+const changePath = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.inspector.default.path = target.value
+  await serialManager.connectSerialPort()
 }
 
-const changeBaud = (e: InputEvent) => {
+const changeBaud = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.inspector.default.baudRate = +target.value
+  await serialManager.connectSerialPort()
 }
 
-const fold = (e) => {
-  const target = e.currentTarget.parentElement as HTMLDivElement
-  isFold = !isFold
-  if (isFold) {
-    target.classList.remove('h-160')
-    target.classList.add('h-40')
-  } else {
-    target.classList.add('h-160')
-    target.classList.remove('h-40')
-  }
-}
+const fold = () => (state.isFold = !state.isFold)
 </script>
 
 <template>
   <div
-    class="overflow-hidden flex flex-col items-center px-1 gap-2 h-160 duration-100 border bg-gray-300"
+    class="overflow-hidden flex flex-col items-center px-1 pb-1 gap-3 border bg-gray-300 duration-100"
+    :class="state.isFold ? 'h-40' : 'h-200'"
   >
-    <button
-      class="absolute top-0 p-2 w-full border text-center font-bold"
-      :class="store.idro.connect ? 'text-teal-600' : 'text-red-400'"
-      @click="fold"
-    >
-      INSPECTOR STATUS
-    </button>
+    <div class="grid grid-cols-1">
+      <button class="p-2 w-full border text-center font-bold" :class="statusColor" @click="fold">
+        INSPECTOR STATUS
+      </button>
+      <label class="text-2xs text-black">
+        {{ store.inspector.connectMsg }}
+      </label>
+    </div>
 
     <button
-      class="flex flex-col w-150 items-center border rounded p-2 mt-50"
-      :class="store.idro.connect ? 'bg-teal-300 text-gray-600' : 'bg-red-400 text-white'"
+      class="flex flex-col w-150 items-center border rounded p-2"
+      :class="statusColor"
       @click="setConnect"
     >
-      {{ store.idro.connectMsg }}
+      TRY CONNECT
     </button>
 
-    <a-label-input label="COM:" :value="store.inspector.default.path" @on-change="changeCom" />
+    <a-label-input label="COM:" :value="store.inspector.default.path" @on-change="changePath" />
     <a-label-input
       label="Baud:"
       :value="`${store.inspector.default.baudRate}`"

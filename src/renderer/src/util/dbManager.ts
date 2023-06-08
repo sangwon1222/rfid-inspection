@@ -1,4 +1,5 @@
 import { store } from '@store/store'
+import { groupLog } from '@util/common'
 
 class DBmanager {
   async connectDB() {
@@ -8,10 +9,7 @@ class DBmanager {
       store.excel.data = ok ? data : []
       store.excel.isExcelUpdated = store.excel.data.length > 0
 
-      console.groupCollapsed(`%c DB STATUS`, 'padding: 4px; background: #bcbcbc;  font-bold:800;')
-      console.log(msg)
-      console.log(data)
-      console.groupEnd()
+      groupLog(ok, 'DB STATUS', [`${data.length}개의 데이터 ${msg}`])
 
       return { ok, msg, data }
     } catch (e) {

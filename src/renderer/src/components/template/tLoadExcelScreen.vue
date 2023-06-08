@@ -1,11 +1,19 @@
 <script setup lang="ts" scoped>
 import excelManager from '@renderer/util/excelManager'
 import AExcelButton from '@atoms/aExcelButton.vue'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { store } from '@store/store'
 
 const excelHeader = computed(() => (store.excel.data[0] ? Object.keys(store.excel.data[0]) : []))
 const excelData = computed(() => store.excel.data)
+const excelTable = computed(() => document.getElementsByClassName('excel-table') as HTMLCollection)
+const focusIndex = computed(() => store.excel.focusCellIndex)
+
+watch(focusIndex, () => {
+  if (focusIndex.value < 5) return
+  const target = excelTable.value[focusIndex.value] as HTMLUListElement
+  target?.focus()
+})
 
 const getEvent = async (e: DragEvent | Event) => {
   const files = (e as DragEvent).dataTransfer.files
@@ -49,8 +57,14 @@ const getCssStyle = (i: number) => {
               {{ v }}
             </li>
           </ul>
-          <ul v-for="(v, i) in excelData" :key="i" class="table-row" :class="getCssStyle(i)">
-            <li v-for="(value, index) of v" :key="index" class="table-cell">
+          <ul
+            v-for="(v, i) in excelData"
+            :key="i"
+            :tabindex="i"
+            class="table-row excel-table"
+            :class="getCssStyle(i)"
+          >
+            <li v-for="(value, key) of v" :key="key" class="table-cell">
               {{ value }}
             </li>
           </ul>

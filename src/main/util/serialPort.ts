@@ -1,6 +1,5 @@
 import { SerialPort } from 'serialport'
-import { ipcMain } from 'electron'
-import Common, { TypeMiddleware } from '../common'
+import Common, { TypeMiddleware, TypeResponse } from '../common'
 
 class Serial implements TypeMiddleware {
   private mPort!: SerialPort
@@ -11,66 +10,71 @@ class Serial implements TypeMiddleware {
   }
 
   async _check() {
+    // console.log(this.mPort?.isOpen)
     return this.mPortConnected
   }
   async _disconnect() {
-    if (this.mPort) this.mPort.close()
+    if (this.mPort) this.mPort.destroy()
   }
 
   async _reConnect() {
     const { path, baudRate } = this.mPortOption
-    const { ok, msg } = await this.connectSerialPort(path, baudRate)
+    const { ok, msg } = (await this.connectSerialPort(path, baudRate)) as TypeResponse
     if (!ok) console.error(msg)
     return { ok, msg }
   }
 
   async connectSerialPort(path: string, baudRate: number) {
-    if (path && baudRate) this.mPortOption = { path, baudRate }
+    return new Promise((resolve, _reject) => {
+      this.mPortOption = { path, baudRate }
 
-    if (!this.mPort) {
+      this.mPort?.destroy()
+
       this.mPort = new SerialPort({ path, baudRate, autoOpen: false })
-    }
+      this.mPort.open((error) => {
+        try {
+          if (error) {
+            this.mPortConnected = false
+            this.mPort?.destroy()
+            return resolve({ ok: false, msg: error })
+          }
 
-    this.mPort.open((error) => {
-      if (error) {
-        this.mPortConnected = false
-        return { ok: false, msg: error }
-      }
+          this.mPort.write('connect')
+          this.mPortConnected = true
 
-      try {
-        this.mPort.write('connect')
-        this.mPortConnected = true
-        console.log('SERIAL PORT 연결 성공')
-
-        return { ok: true, msg: 'connect-serial' }
-      } catch (e) {
-        return { ok: false, msg: e }
-      }
+          const msg = 'SERIAL PORT 연결 성공'
+          console.log(msg)
+          resolve({ ok: true, msg })
+        } catch (e) {
+          this.mPort?.destroy()
+          resolve({ ok: false, msg: e })
+        }
+      })
     })
-    return { ok: true, msg: 'connect-serial' }
   }
 
   async getStartScan() {
     return new Promise((resolve, _reject) => {
+      console.log('getStartScan', this.mPort.isOpen)
+
       this.mPort.once('data', (data) => {
         // H02 H45 H53 H03
-        const hex = Buffer.from([0x02, 0x45, 0x53, 0x03])
-        const feed = Common.hex_to_hexa(hex)
-        console.log(data)
-        console.log(feed)
-        if (feed === '02455303') {
-          return resolve('feedStart')
-        }
+        const feedHex = Buffer.from([0x02, 0x45, 0x53, 0x03])
+        const feedCmd = Common.hex_to_hexa(feedHex) //'02455303'
+        const receiveData = Common.hex_to_hexa(data)
+        if (feedCmd === receiveData) resolve({ ok: true, msg: 'feed-start' })
+        else resolve({ ok: false, msg: '검수기에서 FEED를 눌러주세요' })
       })
     })
   }
 
   async defective() {
     return new Promise((resolve, _reject) => {
-      const cmd = Buffer.from([0x02, 0x15, 0x03])
       // 'H02  H15 H03'
+      const cmd = Buffer.from([0x02, 0x15, 0x03])
       this.mPort.write(cmd)
-      return resolve(`불량`)
+      console.log(cmd)
+      return resolve({ ok: true, msg: `불량` })
     })
   }
 
@@ -79,7 +83,8 @@ class Serial implements TypeMiddleware {
       const cmd = Buffer.from([0x02, 0x06, 0x03])
       // 'H02  H06 H03'
       this.mPort.write(cmd)
-      return resolve(`양품`)
+      console.log(cmd)
+      return resolve({ ok: true, msg: `양품` })
     })
   }
 }

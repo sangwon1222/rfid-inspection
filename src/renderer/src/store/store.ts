@@ -1,5 +1,4 @@
 import { reactive } from 'vue'
-import excelManager from '@util/excelManager'
 
 export const store = reactive({
   snbFold: true,
@@ -16,17 +15,18 @@ export const store = reactive({
   excel: {
     data: [],
     checkedRFID: [],
-    isExcelUpdated: false
+    isExcelUpdated: false,
+    focusCellIndex: 0
   },
   idro: {
     default: { host: '192.168.9.6', port: 5578 },
     changedInfo: { host: '', port: 0 },
     connect: false,
+    connectMsg: 'TCP 연결중..',
     reading: false,
     writing: false,
     writeText: '',
     byteLength: 12,
-    connectMsg: 'disconnect...',
     atnInfo: { atn1: 1, atn2: 0, atn3: 0, atn4: 0 },
     atnPacket: {
       1: { atn1: 1, atn2: 0, atn3: 0, atn4: 0 },
@@ -51,6 +51,10 @@ export const store = reactive({
   },
   inspector: {
     connect: false,
-    default: { path: 'COM6', baudRate: 9600 }
+    connectMsg: 'disconnect SERIAL PORT',
+    default: { path: 'COM6', baudRate: 9600 },
+    isInspecting: false,
+    isInspectMsg: '검수기의 FEED 신호 기다리는중..',
+    inspectError: false
   }
 })

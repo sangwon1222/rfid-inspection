@@ -1,57 +1,63 @@
 <script setup lang="ts" scoped>
 import aLabelInput from '@atoms/aLabelInput.vue'
 import TCPmanager from '@util/tcpManager'
+import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'
+import { reactive, computed } from 'vue'
 
-let isFold = false
+const state = reactive({ isFold: false })
+const statusColor = computed(() => {
+  switch (store.idro.connect) {
+    case true:
+      return 'bg-teal-300 text-gray-600'
+    case false:
+      return 'bg-red-400 text-white'
+    default:
+      return 'bg-gray-600 text-white'
+  }
+})
 const setConnect = async () => {
   if (store.idro.connect) return
   await TCPmanager.connectPrint()
 }
 
-const changeHost = (e: InputEvent) => {
+const changeHost = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
-  console.log(target.value)
   store.idro.changedInfo.host = target.value
+  await TCPmanager.connectPrint()
 }
 
-const changePort = (e: InputEvent) => {
+const changePort = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
-  console.log(target.value)
   store.idro.changedInfo.port = +target.value
+  await TCPmanager.connectPrint()
 }
-const fold = (e) => {
-  const target = e.currentTarget.parentElement as HTMLDivElement
-  isFold = !isFold
-  if (isFold) {
-    target.classList.remove('h-160')
-    target.classList.add('h-40')
-  } else {
-    target.classList.add('h-160')
-    target.classList.remove('h-40')
-  }
-}
+const fold = () => (state.isFold = !state.isFold)
 </script>
 
 <template>
   <div
-    class="overflow-hidden flex flex-col items-center px-1 gap-2 h-160 duration-100 border bg-gray-300"
+    class="overflow-hidden flex flex-col items-center gap-3 border bg-gray-300 duration-100 font-bold"
+    :class="state.isFold ? 'h-40' : 'h-200'"
   >
-    <button
-      class="absolute top-0 p-2 w-full border text-center font-bold"
-      :class="store.idro.connect ? 'text-teal-600' : 'text-red-400'"
-      @click="fold"
-    >
-      IDRO STATUS
-    </button>
-
-    <button
-      class="flex flex-col w-150 items-center border rounded p-2 mt-50"
-      :class="store.idro.connect ? 'bg-teal-300 text-gray-600' : 'bg-red-400 text-white'"
-      @click="setConnect"
-    >
-      {{ store.idro.connectMsg }}
-    </button>
+    <div class="grid grid-cols-1">
+      <a-button
+        :custom-style="`py-2 w-full border ${statusColor}`"
+        label="IDRO STATUS"
+        @pointerdown="fold"
+      >
+      </a-button>
+      <label class="text-2xs text-black">
+        {{ store.idro.connectMsg }}
+      </label>
+      <button
+        class="flex flex-col w-150 items-center border rounded p-2"
+        :class="statusColor"
+        @click="setConnect"
+      >
+        TRY CONNECT
+      </button>
+    </div>
 
     <a-label-input label="host:" :value="store.idro.default.host" @on-change="changeHost" />
     <a-label-input label="port:" :value="`${store.idro.default.port}`" @on-change="changePort" />

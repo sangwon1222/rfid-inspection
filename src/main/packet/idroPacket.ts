@@ -9,7 +9,7 @@ export default {
    * memory read
    */
   // memoryRead: '>r 1 2 8\r\n', // 판교용
-  memoryRead: '>r 1 2 6\r\n', // 본사 용
+  memoryRead: '>r 1 2 8\r\n',
 
   //  >1T7465737407
   //  >1T746500
@@ -19,10 +19,10 @@ export default {
    */
   // Reader password ‘0’
   // >x w 0
-  setNotPassWrite: '>x w 0  \r\n',
+  setNotPassWrite: '>x w 0 \r\n',
   // EPC Bank 1word “1234” write
   // >w 1 2 1234
-  notPassWriteTag: '>w 1 2 ?? \r\n',
+  notPassWriteTag: '>w 1 2 ??\r\n',
   // notPassWriteTag: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
 
   reset: '>E 1 2 6\r\n',

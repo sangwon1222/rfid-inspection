@@ -82,6 +82,7 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', async () => {
+  console.log('window-all-closed', process.platform)
   if (process.platform === 'darwin') return
   await TCPprinter._disconnect()
   await DBbase._disconnect()

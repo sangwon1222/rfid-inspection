@@ -17,7 +17,7 @@ const props = defineProps({
     default: ''
   }
 })
-const defaultStyle = 'border border-gray-400 p-4 rounded-xl '
+const defaultStyle = 'border border-gray-400 p-4 rounded-xl cursorpointer'
 
 const state = reactive({
   style: computed(() => (props.customStyle ? props.customStyle : defaultStyle))
@@ -30,12 +30,7 @@ const onEvent = (e: MouseEvent | TouchEvent) => {
 </script>
 
 <template>
-  <button
-    class="hover:bg-sky-900 hover:text-white"
-    :class="`${state.style} ${props.addStyle}`"
-    @click="onEvent"
-    @touchstart="onEvent"
-  >
+  <button :class="`${props.addStyle} ${state.style}}`" @click="onEvent" @touchstart="onEvent">
     {{ props.label }}
     <slot />
   </button>

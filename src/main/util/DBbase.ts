@@ -11,9 +11,12 @@ const createTableSQL =
   'idx INTEGER NOT NULL UNIQUE, ' +
   'epc TEXT NOT NULL,' +
   'password TEXT DEFAULT "000000",' +
-  'creteDate TEXT DEFAULT CURRENT_TIMESTAMP,' +
+  'creteDate TEXT NOT NULL,' +
   'PRIMARY KEY(idx AUTOINCREMENT)' +
   ')'
+
+const day = ['일', '월', '화', '수', '목', '금', '토']
+const makeTwo = () => {}
 
 class DBbase implements TypeMiddleware {
   private mDB: any
@@ -33,7 +36,7 @@ class DBbase implements TypeMiddleware {
 
   async createTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const file = './db/test.db'
+      const file = './db/excel-data.db'
 
       const bindDB = async () => {
         this.mDB = new sqlite3.Database(file)
@@ -124,12 +127,21 @@ class DBbase implements TypeMiddleware {
     return new Promise((resolve, _reject) => {
       try {
         const password = pwd ? pwd : '0000'
+        const today = new Date()
+
+        const year = today.getFullYear()
+        const month = `00${today.getMonth() + 1}`.slice(-2)
+        const date = `00${today.getDate()}`.slice(-2)
+        const dayIndex = today.getDay()
+        const hours = `00${today.getHours()}`.slice(-2)
+        const minutes = `00${today.getMinutes()}`.slice(-2)
+        const creteDate = `${year}/${month}/${date}(${day[dayIndex]}) ${hours}:${minutes}`
 
         const insertSQL = `
                   INSERT INTO epcData
-                  (epc, password)
+                  (epc, password, creteDate)
                   VALUES
-                  ("${epc}","${password}")
+                  ("${epc}","${password}","${creteDate}")
                 `
         this.mDB.run(insertSQL, (err) => {
           if (err) {

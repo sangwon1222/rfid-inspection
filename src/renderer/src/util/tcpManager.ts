@@ -1,17 +1,23 @@
 import { store } from '@store/store'
+import { groupLog } from '@util/common'
 
 class TCPmanager {
   async connectPrint() {
+    if (store.idro.connect === null) return
+    store.idro.connect = null
+    store.idro.connectMsg = 'TCP 연결중..'
     try {
-      store.idro.connect = true
       const { host, port } = store.idro.default
       const { ok, msg } = await window.TCPapi.connectPrint({ host, port })
       store.idro.connect = ok
       store.idro.connectMsg = msg
 
+      groupLog(ok, 'TCP STATUS', [msg])
+
       return { ok, msg }
     } catch (e) {
       store.idro.connect = false
+      store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     }
   }
@@ -127,7 +133,7 @@ class TCPmanager {
     try {
       const { ok, msg } = await window.TCPapi.onMemoryRead(store.idro.byteLength)
       if (ok) {
-        console.log('READ DATA', msg)
+        console.log('READ: ', msg)
       } else {
         store.idro.connect = false
         store.idro.connectMsg = msg
@@ -145,7 +151,7 @@ class TCPmanager {
     try {
       const { ok, msg } = await window.TCPapi.onMemoryWrite(store.idro.writeText)
       if (ok) {
-        console.log('WRITE', msg)
+        console.log('WRITE: ', store.idro.writeText)
       } else {
         store.idro.connect = false
         store.idro.connectMsg = msg

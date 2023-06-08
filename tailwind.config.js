@@ -38,6 +38,11 @@ module.exports = {
         ...spacing
       },
       zIndex: {
+        15: '15',
+        25: '25',
+        35: '35',
+        45: '45',
+        55: '55',
         100: '100'
       },
       gridTemplateColumns: {
