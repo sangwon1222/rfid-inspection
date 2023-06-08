@@ -49,6 +49,7 @@ class Serialmanager {
       console.log(e)
       return { ok: false, msg: e.message }
     } finally {
+      store.idro.writeText = ''
       store.inspector.isInspectMsg = ''
       store.inspector.isInspecting = false
     }
