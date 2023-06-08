@@ -79,6 +79,8 @@ class Serialmanager {
       } else {
         this.defective()
       }
+      const start = await window.Serialapi.getStartScan()
+      if (start.ok) continue
       if (i === length - 1) return { ok: true, msg: '검수 완료' }
     }
   }
