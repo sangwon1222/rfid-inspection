@@ -59,7 +59,7 @@ const fold = () => (state.isFold = !state.isFold)
       class="flex flex-col w-150 items-center border rounded p-2 bg-teal-400 text-black"
       @click="setConnect"
     >
-      TRY CONNECT
+      검수기 연결
     </button>
 
     <button

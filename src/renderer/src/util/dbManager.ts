@@ -19,6 +19,27 @@ class DBmanager {
     }
   }
 
+  async readUserSet() {
+    try {
+      const { ok, data, msg } = await window.DBapi.readUserSet()
+      return { ok, data, msg }
+    } catch (e) {
+      console.error(e)
+      return e
+    }
+  }
+
+  async updateUserSet({ antenna, buzzer, atn1, atn2, atn3, atn4 }) {
+    try {
+      const params = { antenna, buzzer, atn1, atn2, atn3, atn4 }
+      const { ok, msg } = await window.DBapi.updateUserSet(params)
+      return { ok, msg }
+    } catch (e) {
+      console.error(e)
+      return e
+    }
+  }
+
   async read() {
     try {
       const result = await window.DBapi.read()

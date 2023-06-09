@@ -10,10 +10,54 @@ import { onMounted, computed } from 'vue'
 const isLoading = computed(() => store.loading.isLoading)
 
 onMounted(async () => {
-  await dbManager.connectDB()
+  store.loading.isLoading = true
+
+  // IDRO TCP 연결
   await tcpManager.connectPrint()
+  // 검수기 시리얼포트 연결
   await serialManager.connectSerialPort()
+  // DB 엑셀 연결, 유저 설정(.txt) 불러오기
+  await dbManager.connectDB()
+  const { ok, data } = await dbManager.readUserSet()
+  // 유저 설정(.txt) 있으면 적용
+  if (ok) await setUserSet(JSON.parse(data))
+
+  store.loading.init()
 })
+
+/**
+ * @description 유저 정보(.txt) 불러와서 IDRO 설정
+ * @param data text=> JSON으로 변환한 데이터
+ */
+const setUserSet = async (data: { [key: string]: number }) => {
+  try {
+    const { antenna, buzzer, atn1, atn2, atn3, atn4 } = data
+    const atnInfo = store.idro.atnPacket()[antenna]
+
+    store.idro.atnInfo = { ...atnInfo }
+    store.idro.powerGain = { atn1, atn2, atn3, atn4, atn0: 300 }
+    store.idro.onBuzzer = Boolean(buzzer)
+    await setIdroInit()
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+/**
+ * @description 유저가 저장한 설정으로 IDRO 설정
+ */
+const setIdroInit = async () => {
+  try {
+    await tcpManager[store.idro.onBuzzer ? 'onBuzzer' : 'offBuzzer']()
+    await tcpManager.antenna()
+    await tcpManager.onPowerGain(1)
+    await tcpManager.onPowerGain(2)
+    await tcpManager.onPowerGain(3)
+    await tcpManager.onPowerGain(4)
+  } catch (e) {
+    console.error(e)
+  }
+}
 </script>
 
 <template>

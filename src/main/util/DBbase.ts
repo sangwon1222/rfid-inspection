@@ -3,8 +3,9 @@ import { TypeMiddleware } from '../common'
 const fs = require('fs')
 interface TypeDBResponse {
   ok: boolean
-  msg: string
+  msg?: string
   data?: any | undefined
+  user?: any | undefined
 }
 const createTableSQL =
   'CREATE TABLE IF NOT EXISTS epcData (' +
@@ -36,12 +37,14 @@ class DBbase implements TypeMiddleware {
 
   async _connectDB(): Promise<TypeDBResponse> {
     try {
-      const create = await this.createTable()
-      if (create.ok) {
+      const createExcelDB = await this.createExcelTable()
+      const createUserSetDB = await this.createUserTable()
+
+      if (createExcelDB.ok && createUserSetDB.ok) {
         const read = await this.read()
-        return { ok: read.ok, data: read.data, msg: read.msg }
+        return { ok: read.ok, data: read.data, msg: read.msg, user: createUserSetDB }
       } else {
-        return { ok: false, data: [], msg: create.msg }
+        return { ok: false, data: createExcelDB.msg, msg: createUserSetDB.msg }
       }
     } catch (e: any) {
       this.mDB = null
@@ -49,12 +52,11 @@ class DBbase implements TypeMiddleware {
     }
   }
 
-  async createTable(): Promise<TypeDBResponse> {
+  async createExcelTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      this._disconnectDB
       const file = './db/excel-data.db'
 
-      const bindDB = async () => {
+      const bindDB = () => {
         this.mDB = new sqlite3.Database(file)
         this.mDB.run(createTableSQL, () => {
           resolve({ ok: true, data: [], msg: 'DB 생성 완료' })
@@ -73,6 +75,66 @@ class DBbase implements TypeMiddleware {
         switch (error.code) {
           case 'EEXIST':
             bindDB()
+            break
+          default:
+            this.mDB = null
+            resolve({ ok: false, msg: error.message })
+            break
+        }
+      }
+    })
+  }
+
+  async createUserTable(): Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      const file = './db/user-data.txt'
+
+      try {
+        fs.writeFileSync(
+          file,
+          `{"antenna": 1,"buzzer": 1,"atn1": 150,"atn2": 150,"atn3": 150,"atn4": 150}`,
+          { flag: 'wx' }
+        )
+        resolve({ ok: true })
+      } catch (e) {
+        const error = e as any
+
+        switch (error.code) {
+          case 'EEXIST':
+            resolve({ ok: true, msg: error.message })
+            break
+          default:
+            this.mDB = null
+            resolve({ ok: false, msg: error.message })
+            break
+        }
+      }
+    })
+  }
+
+  async updateUserSet({ antenna, buzzer, atn1, atn2, atn3, atn4 }): Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      const file = './db/user-data.txt'
+      try {
+        fs.writeFileSync(
+          file,
+          `{ 
+          "antenna": ${antenna}, 
+          "buzzer": ${buzzer}, 
+          "atn1": ${atn1},
+          "atn2": ${atn2},
+          "atn3": ${atn3},
+          "atn4": ${atn4} 
+      }`,
+          { flag: 'w' }
+        )
+        resolve({ ok: true })
+      } catch (e) {
+        const error = e as any
+
+        switch (error.code) {
+          case 'EEXIST':
+            resolve({ ok: true, msg: error.message })
             break
           default:
             this.mDB = null
@@ -114,6 +176,14 @@ class DBbase implements TypeMiddleware {
         const msg = this.mDB ? e.message : 'DB연결이 안되어 있습니다.'
         resolve({ ok: false, msg, data: [] })
       }
+    })
+  }
+
+  async readUserSet(): Promise<TypeDBResponse> {
+    return new Promise((resolve, _reject) => {
+      const file = './db/user-data.txt'
+      const data = fs.readFileSync(file).toString()
+      resolve({ ok: true, msg: 'USER SET', data })
     })
   }
 

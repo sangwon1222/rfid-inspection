@@ -60,6 +60,7 @@ export default {
   getBuzzer: '>y b\r\n',
 
   // set Atnenna port
+  setAtnennaport: '>x e ??\r\n',
   onAtn1: '>x e 1\r\n',
   onAtn2: '>x e 2\r\n',
   onAtn1Atn2: '>x e 3\r\n',

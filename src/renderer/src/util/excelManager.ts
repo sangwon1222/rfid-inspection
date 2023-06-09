@@ -28,6 +28,7 @@ class ExcelManager {
         if (ok) {
           store.excel.isExcelUpdated = data.length > 0
           store.excel.data = data
+          console.log(data)
         } else {
           console.log(msg)
           store.excel.isExcelUpdated = false

@@ -2,7 +2,7 @@
 import aLabelInput from '@atoms/aLabelInput.vue'
 import TCPmanager from '@util/tcpManager'
 import { store } from '@store/store'
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed } from 'vue'
 const state = reactive({ isFold: false })
 
 const statusColor = computed(() => {
@@ -59,7 +59,7 @@ const fold = () => (state.isFold = !state.isFold)
       class="flex flex-col w-150 items-center border rounded p-2 bg-teal-400 text-black"
       @click="setConnect"
     >
-      TRY CONNECT
+      IDRO 연결
     </button>
     <button
       class="flex flex-col w-150 items-center border rounded p-2 bg-red-400 text-white"

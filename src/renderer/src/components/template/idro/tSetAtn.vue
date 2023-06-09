@@ -1,14 +1,15 @@
 <script setup lang="ts" scoped>
 import tSetWrap from '@template/tSetWrap.vue'
-import TCPmanager from '@util/tcpManager'
+import tcpManager from '@util/tcpManager'
 import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'
 
 const setAntenna = async (antennaIndex: number) => {
-  const atnName = `atn${antennaIndex}`
-  store.idro.atnInfo[atnName] = store.idro.atnInfo[atnName] ? 0 : 1
-  const { ok } = await TCPmanager.antenna()
-  if (!ok) store.idro.atnInfo[atnName] = !store.idro.atnInfo[atnName]
+  store.loading.isLoading = true
+  const atn = `atn${antennaIndex}`
+  store.idro.atnInfo[atn] = store.idro.atnInfo[atn] ? 0 : 1
+  await tcpManager.antenna()
+  store.loading.init()
 }
 </script>
 

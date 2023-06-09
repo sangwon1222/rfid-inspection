@@ -78,8 +78,10 @@ class Serialmanager {
       store.idro.writeText = epc
       store.idro.byteLength = epc.length
 
+      store.inspector.isInspectMsg = `write [${epc}]`
       await tcpManager.onMemoryWrite()
       const read = await tcpManager.onMemoryRead()
+      store.inspector.isInspectMsg = `read ${read.msg}`
 
       if (read.ok) {
         const isPassRfid = epc === read.msg
@@ -89,6 +91,8 @@ class Serialmanager {
       }
 
       if (!store.inspector.isInspecting) return this.stopInspect()
+
+      store.inspector.isInspectMsg = store.inspector.status.wait
       const feed = await window.Serialapi.getStartScan()
       if (feed.ok) continue
     }

@@ -46,10 +46,6 @@ class TCPprinter implements TypeMiddleware {
         const msg = 'IDRO TCP 연결 성공'
         const result = { ok: true, msg, host, port }
         this.mIsConnected = true
-
-        this.mTcp.write(idroPacket['onBuzzer'])
-        this.mTcp.write(idroPacket['onAtn1'])
-        this.mTcp.write(idroPacket['powerGain'].replace('??', 'p').replace('??', '300'))
         resolve(result)
       })
       const list = ['timeout', 'end', 'close', 'error', 'connect']
@@ -68,29 +64,37 @@ class TCPprinter implements TypeMiddleware {
   }
 
   antenna(setting: { atn1: number; atn2: number; atn3: number; atn4: number }) {
-    const keys = Object.keys(setting) as string[]
-    const values = Object.values(setting) as number[]
+    return new Promise((resolve, _reject) => {
+      const keys = Object.keys(setting) as string[]
+      const values = Object.values(setting) as number[]
 
-    let able = 'on'
-    let disable = ''
-    for (let i = 0; i < values.length; i++) {
-      if (values[i]) {
-        able += keys[i][0].toUpperCase() + keys[i].slice(1)
-      } else disable += keys[i][0].toUpperCase() + keys[i].slice(1)
-    }
+      let able = 'on'
+      for (let i = 0; i < values.length; i++) {
+        if (values[i]) {
+          able += keys[i][0].toUpperCase() + keys[i].slice(1)
+        }
+      }
 
-    const cmd = idroPacket[able]
+      const cmd = idroPacket[able]
 
-    this.mTcp.write(idroPacket['allStop'])
-    this.mTcp.write(cmd)
+      this.mTcp.write(idroPacket['allStop'])
+      this.mTcp.write(cmd)
 
-    return { ok: true, able: able.substring(2), disable, cmd }
+      resolve({ ok: true, able, cmd })
+    })
   }
 
   onBuzzer() {
-    this.mTcp.write(idroPacket['allStop'])
-    this.mTcp.write(idroPacket['onBuzzer'])
-    return { ok: true, msg: idroPacket['onBuzzer'] }
+    return new Promise((resolve, _reject) => {
+      this.mTcp.write(idroPacket['allStop'])
+      this.mTcp.write(idroPacket['onBuzzer'])
+
+      this.mTcp.write(idroPacket['getBuzzer'])
+      this.mTcp.once('data', (data) => {
+        const atnStatus = data.toString()
+        resolve({ ok: true, msg: atnStatus })
+      })
+    })
   }
 
   offBuzzer() {

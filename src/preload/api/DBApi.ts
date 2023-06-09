@@ -1,6 +1,6 @@
 interface TypeDBResponse {
   ok: boolean
-  msg: string
+  msg?: string
   data?: any[]
 }
 
@@ -24,6 +24,20 @@ export default class DBapi {
   read = async (): Promise<TypeDBResponse> => {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer.invoke('read').then((result) => resolve(result))
+    })
+  }
+
+  readUserSet = async (): Promise<TypeDBResponse> => {
+    return new Promise((resolve, _reject) => {
+      const func = 'readUserSet'
+      this.mIpcRenderer.invoke(func).then(({ ok, msg, data }) => resolve({ ok, msg, data }))
+    })
+  }
+
+  updateUserSet = async ({ antenna, buzzer, atn1, atn2, atn3, atn4 }): Promise<TypeDBResponse> => {
+    return new Promise((resolve, _reject) => {
+      const params = { antenna, buzzer, atn1, atn2, atn3, atn4 }
+      this.mIpcRenderer.invoke('updateUserSet', [params]).then((result) => resolve(result))
     })
   }
 
