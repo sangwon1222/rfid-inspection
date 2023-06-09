@@ -11,7 +11,13 @@ export default class DBapi {
   }
   connectDB = async (): Promise<TypeDBResponse> => {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('connectDB').then((result) => resolve(result))
+      this.mIpcRenderer.invoke('_connectDB').then((result) => resolve(result))
+    })
+  }
+
+  async disconnect() {
+    return new Promise((resolve, _reject) => {
+      this.mIpcRenderer.invoke('_disconnectDB').then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 

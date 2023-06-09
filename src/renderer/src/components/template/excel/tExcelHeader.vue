@@ -4,7 +4,9 @@ import excelManager from '@renderer/util/excelManager'
 import aButton from '@atoms/aButton.vue'
 import dbManager from '@util/dbManager'
 import { store } from '@store/store'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const initExcel = async () => {
   store.excel.isExcelUpdated = false
   store.excel.data = []
@@ -35,12 +37,25 @@ const updateExcel = async (e: Event) => {
 }
 
 const inspectStart = async () => {
-  await serialManager.inspectStart()
+  const routeName =
+    (store.idro.connect ? '' : 'set-idro') || (store.inspector.connect ? '' : 'set-serial')
+
+  if (store.inspector.connect && store.idro.connect) {
+    await serialManager.inspectStart()
+  } else {
+    router.push(routeName)
+  }
 }
 </script>
 
 <template>
   <div class="relative flex flex-wrap items-center gap-4 px-6 w-full h-60 bg-main border-gray-600">
+    <a-button
+      custom-style="w-60 h-60 rounded border text-white bg-red-500 hover:bg-red-800"
+      label="DELETE ALL"
+      @on-parent-event="deleteAll"
+    />
+
     <div class="filebox">
       <button
         class="w-60 h-60 rounded border text-white hover:bg-gray-200 hover:text-gray-800"
@@ -51,12 +66,6 @@ const inspectStart = async () => {
         EXCEL UPLOAD
       </button>
     </div>
-
-    <a-button
-      custom-style="w-60 h-60 rounded border text-white bg-red-500 hover:bg-red-800"
-      label="DELETE ALL"
-      @on-parent-event="deleteAll"
-    />
 
     <div class="flex items-end">
       <a-button

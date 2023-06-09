@@ -23,6 +23,18 @@ class Serialmanager {
     }
   }
 
+  async disconnect() {
+    try {
+      const { ok, msg } = await window.Serialapi.disconnect()
+      store.inspector.connect = false
+      store.inspector.connectMsg = '연결 해제'
+
+      return { ok, msg }
+    } catch (e) {
+      return { ok: false, msg: e.message }
+    }
+  }
+
   async getStartScan(): Promise<{ ok: boolean; msg: string }> {
     try {
       const { ok, msg } = await window.Serialapi.getStartScan()
@@ -34,75 +46,71 @@ class Serialmanager {
   }
 
   async inspectStart() {
-    if (store.inspector.isInspecting) {
-      store.inspector.isInspecting = false
-      store.inspector.inspectError = true
-      return
-    }
-    store.inspector.isInspecting = true
     try {
+      if (store.inspector.isInspecting) return
+      store.inspector.isInspecting = true
+
       const start = await window.Serialapi.getStartScan()
       store.inspector.isInspecting = start.ok
-      const { ok, msg } = await this.inspect()
-      return { ok, msg }
+      if (start.ok) {
+        const { ok, msg } = await this.inspect()
+        return { ok, msg }
+      } else {
+        return { ok: false, msg: start.msg }
+      }
     } catch (e) {
       console.log(e)
       return { ok: false, msg: e.message }
     } finally {
-      store.idro.writeText = ''
-      store.inspector.isInspectMsg = ''
-      store.inspector.isInspecting = false
+      this.stopInspect()
     }
   }
 
   async inspect() {
-    store.inspector.isInspectMsg = '검수중..'
     const { data } = store.excel
     const { length } = data
-    for (let i = 0; i < length; i++) {
-      if (!store.inspector.isInspecting) return { ok: false, msg: '검수 중지' }
 
-      store.idro.writeText = data[i].epc
-      store.idro.byteLength = data[i].epc.length
+    for (let i = 0; i < length; i++) {
+      if (!store.inspector.isInspecting) return this.stopInspect()
+      store.inspector.isInspectMsg = store.inspector.status.start
+
+      const { epc } = data[i]
+      store.idro.writeText = epc
+      store.idro.byteLength = epc.length
 
       await tcpManager.onMemoryWrite()
       const read = await tcpManager.onMemoryRead()
 
-      if (!store.inspector.isInspecting) return { ok: false, msg: '검수 중지' }
-      if (!read.ok) return { ok: false, msg: `READ 기능 에러${read.msg}` }
-
-      const result = data[i].epc === read.msg
-      store.excel.checkedRFID[i] = result
-      store.excel.focusCellIndex = i
-      if (result) {
-        this.passed()
+      if (read.ok) {
+        const isPassRfid = epc === read.msg
+        await this.setRFIDQuality(i, isPassRfid)
       } else {
-        this.defective()
+        return this.stopInspect(`READ 기능 에러 [${read.msg}]`)
       }
-      const start = await window.Serialapi.getStartScan()
-      if (start.ok) continue
-      if (i === length - 1) return { ok: true, msg: '검수 완료' }
+
+      if (!store.inspector.isInspecting) return this.stopInspect()
+      const feed = await window.Serialapi.getStartScan()
+      if (feed.ok) continue
     }
+
+    store.inspector.isInspectMsg = store.inspector.status.complete
+    return { ok: true, msg: '검수 완료' }
   }
 
-  async defective() {
-    try {
-      const { ok, msg } = await window.Serialapi.defective()
-      return { ok, msg }
-    } catch (e) {
-      console.error(e)
-      return { ok: false, msg: e.message }
-    }
+  async setRFIDQuality(index: number, isPass: boolean) {
+    const status = isPass ? 'passed' : 'defective'
+    await window.Serialapi[status]()
+
+    store.excel.checkedRFID[index] = isPass
+    store.excel.focusCellIndex = index
   }
 
-  async passed() {
-    try {
-      const { ok, msg } = await window.Serialapi.passed()
-      return { ok, msg }
-    } catch (e) {
-      console.error(e)
-      return { ok: false, msg: e.message }
-    }
+  stopInspect(message?: string) {
+    const msg = message ? message : store.inspector.status.stop
+    store.inspector.isInspectMsg = msg
+    store.idro.writeText = ''
+    store.inspector.isInspecting = false
+    return { ok: false, msg }
   }
 }
 

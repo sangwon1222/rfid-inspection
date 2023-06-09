@@ -6,8 +6,14 @@ export default class SerialApi {
   async connectSerialPort(path: string, baudRate: number) {
     return new Promise((resolve, _reject) => {
       const parmas = [path, baudRate]
-      const func = 'connectSerialPort'
+      const func = '_connectSerialPort'
       this.mIpcRenderer.invoke(func, parmas).then(({ ok, msg }) => resolve({ ok, msg }))
+    })
+  }
+
+  async disconnect() {
+    return new Promise((resolve, _reject) => {
+      this.mIpcRenderer.invoke('_disconnectSerial').then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 

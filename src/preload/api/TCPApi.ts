@@ -11,7 +11,13 @@ export default class TCPApi {
   async connectPrint({ host, port }: TypeObject) {
     return new Promise((resolve, _reject) => {
       const params = { host, port }
-      this.mIpcRenderer.invoke('connectTCP', params).then((result) => resolve(result))
+      this.mIpcRenderer.invoke('_connectTCP', params).then((result) => resolve(result))
+    })
+  }
+
+  async disconnect() {
+    return new Promise((resolve, _reject) => {
+      this.mIpcRenderer.invoke('_disconnectTCP').then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 

@@ -26,11 +26,11 @@ const statusColor = (status: boolean | any) => {
 }
 
 const connectTcp = () => {
-  tcpManager.connectPrint()
+  if (!store.idro.connect) tcpManager.connectPrint()
   router.push('set-idro')
 }
 const connectSerial = () => {
-  serialManager.connectSerialPort()
+  if (!store.inspector.connect) serialManager.connectSerialPort()
   router.push('set-serial')
 }
 </script>

@@ -22,6 +22,18 @@ class TCPmanager {
     }
   }
 
+  async disconnect() {
+    try {
+      const { ok, msg } = await window.TCPapi.disconnect()
+      store.idro.connect = false
+      store.idro.connectMsg = '연결 해제'
+
+      return { ok, msg }
+    } catch (e) {
+      return { ok: false, msg: e.message }
+    }
+  }
+
   async antenna(): Promise<{ ok: boolean; msg: string; able?: string; cmd?: string }> {
     try {
       store.idro.reading = false

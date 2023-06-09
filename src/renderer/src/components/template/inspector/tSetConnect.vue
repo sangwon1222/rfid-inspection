@@ -20,6 +20,10 @@ const setConnect = async () => {
   await serialManager.connectSerialPort()
 }
 
+const disconnect = async () => {
+  await serialManager.disconnect()
+}
+
 const changePath = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.inspector.default.path = target.value
@@ -37,24 +41,32 @@ const fold = () => (state.isFold = !state.isFold)
 
 <template>
   <div
-    class="overflow-hidden flex flex-col items-center px-1 pb-1 gap-3 border bg-gray-300 duration-100"
-    :class="state.isFold ? 'h-40' : 'h-200'"
+    class="overflow-hidden flex flex-col items-center gap-3 w-180 border bg-gray-300 duration-100"
+    :class="state.isFold ? 'h-40' : 'h-240'"
   >
-    <div class="grid grid-cols-1">
-      <button class="p-2 w-full border text-center font-bold" :class="statusColor" @click="fold">
-        INSPECTOR STATUS
-      </button>
+    <button
+      class="grid grid-cols-1p-2 w-full border text-center font-bold"
+      :class="statusColor"
+      @click="fold"
+    >
+      INSPECTOR STATUS
       <label class="text-2xs text-black">
         {{ store.inspector.connectMsg }}
       </label>
-    </div>
+    </button>
 
     <button
-      class="flex flex-col w-150 items-center border rounded p-2"
-      :class="statusColor"
+      class="flex flex-col w-150 items-center border rounded p-2 bg-teal-400 text-black"
       @click="setConnect"
     >
       TRY CONNECT
+    </button>
+
+    <button
+      class="flex flex-col w-150 items-center border rounded p-2 bg-red-400 text-white"
+      @click="disconnect"
+    >
+      연결 끊기
     </button>
 
     <a-label-input label="COM:" :value="store.inspector.default.path" @on-change="changePath" />

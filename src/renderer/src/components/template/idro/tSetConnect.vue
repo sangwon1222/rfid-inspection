@@ -1,11 +1,10 @@
 <script setup lang="ts" scoped>
 import aLabelInput from '@atoms/aLabelInput.vue'
 import TCPmanager from '@util/tcpManager'
-import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'
-import { reactive, computed } from 'vue'
-
+import { reactive, computed, onMounted } from 'vue'
 const state = reactive({ isFold: false })
+
 const statusColor = computed(() => {
   switch (store.idro.connect) {
     case true:
@@ -16,9 +15,14 @@ const statusColor = computed(() => {
       return 'bg-gray-600 text-white'
   }
 })
+
 const setConnect = async () => {
   if (store.idro.connect) return
   await TCPmanager.connectPrint()
+}
+
+const disconnect = async () => {
+  await TCPmanager.disconnect()
 }
 
 const changeHost = async (e: InputEvent) => {
@@ -37,27 +41,32 @@ const fold = () => (state.isFold = !state.isFold)
 
 <template>
   <div
-    class="overflow-hidden flex flex-col items-center gap-3 border bg-gray-300 duration-100 font-bold"
-    :class="state.isFold ? 'h-40' : 'h-200'"
+    class="overflow-hidden flex flex-col items-center gap-3 w-180 border bg-gray-300 duration-100"
+    :class="state.isFold ? 'h-40' : 'h-240'"
   >
-    <div class="grid grid-cols-1">
-      <a-button
-        :custom-style="`py-2 w-full border ${statusColor}`"
-        label="IDRO STATUS"
-        @pointerdown="fold"
-      >
-      </a-button>
+    <button
+      class="grid grid-cols-1p-2 w-full border text-center font-bold"
+      :class="statusColor"
+      @click="fold"
+    >
+      IDRO STATUS
       <label class="text-2xs text-black">
         {{ store.idro.connectMsg }}
       </label>
-      <button
-        class="flex flex-col w-150 items-center border rounded p-2"
-        :class="statusColor"
-        @click="setConnect"
-      >
-        TRY CONNECT
-      </button>
-    </div>
+    </button>
+
+    <button
+      class="flex flex-col w-150 items-center border rounded p-2 bg-teal-400 text-black"
+      @click="setConnect"
+    >
+      TRY CONNECT
+    </button>
+    <button
+      class="flex flex-col w-150 items-center border rounded p-2 bg-red-400 text-white"
+      @click="disconnect"
+    >
+      연결 끊기
+    </button>
 
     <a-label-input label="host:" :value="store.idro.default.host" @on-change="changeHost" />
     <a-label-input label="port:" :value="`${store.idro.default.port}`" @on-change="changePort" />

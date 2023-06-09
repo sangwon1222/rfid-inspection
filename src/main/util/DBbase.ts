@@ -16,7 +16,6 @@ const createTableSQL =
   ')'
 
 const day = ['일', '월', '화', '수', '목', '금', '토']
-const makeTwo = () => {}
 
 class DBbase implements TypeMiddleware {
   private mDB: any
@@ -24,18 +23,35 @@ class DBbase implements TypeMiddleware {
   async _check() {
     return this.mDB
   }
-  async _disconnect() {
-    if (this.mDB) this.mDB.close()
-  }
 
   async _reConnect() {
-    const { ok, msg } = await this.connectDB()
+    const { ok, msg } = await this._connectDB()
     if (!ok) console.error(msg)
     return { ok, msg }
   }
 
+  async _disconnectDB() {
+    this.mDB?.close()
+  }
+
+  async _connectDB(): Promise<TypeDBResponse> {
+    try {
+      const create = await this.createTable()
+      if (create.ok) {
+        const read = await this.read()
+        return { ok: read.ok, data: read.data, msg: read.msg }
+      } else {
+        return { ok: false, data: [], msg: create.msg }
+      }
+    } catch (e: any) {
+      this.mDB = null
+      return { ok: false, data: [], msg: e.message }
+    }
+  }
+
   async createTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
+      this._disconnectDB
       const file = './db/excel-data.db'
 
       const bindDB = async () => {
@@ -77,21 +93,6 @@ class DBbase implements TypeMiddleware {
         resolve({ ok: false, msg: e.message })
       }
     })
-  }
-
-  async connectDB(): Promise<TypeDBResponse> {
-    try {
-      const create = await this.createTable()
-      if (create.ok) {
-        const read = await this.read()
-        return { ok: read.ok, data: read.data, msg: read.msg }
-      } else {
-        return { ok: false, data: [], msg: create.msg }
-      }
-    } catch (e: any) {
-      this.mDB = null
-      return { ok: false, data: [], msg: e.message }
-    }
   }
 
   async read(): Promise<TypeDBResponse> {

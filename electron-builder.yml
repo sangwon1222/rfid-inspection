@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: client
+appId: com.sonid.app
+productName: SONID검수기
 directories:
   buildResources: build
 files:
@@ -13,12 +13,16 @@ asarUnpack:
   - resources/**
 afterSign: build/notarize.js
 win:
-  executableName: client
+  executableName: SONID검수기
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+  oneClick: true
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:

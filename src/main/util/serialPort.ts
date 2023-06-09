@@ -10,25 +10,29 @@ class Serial implements TypeMiddleware {
   }
 
   async _check() {
-    // console.log(this.mPort?.isOpen)
     return this.mPortConnected
-  }
-  async _disconnect() {
-    if (this.mPort) this.mPort.destroy()
   }
 
   async _reConnect() {
     const { path, baudRate } = this.mPortOption
-    const { ok, msg } = (await this.connectSerialPort(path, baudRate)) as TypeResponse
+    const { ok, msg } = (await this._connectSerialPort(path, baudRate)) as TypeResponse
     if (!ok) console.error(msg)
     return { ok, msg }
   }
 
-  async connectSerialPort(path: string, baudRate: number) {
+  async _disconnectSerial() {
+    if (this.mPort?.isOpen) {
+      this.mPort?.close()
+      this.mPort?.destroy()
+    }
+    return { ok: true }
+  }
+
+  async _connectSerialPort(path: string, baudRate: number) {
     return new Promise((resolve, _reject) => {
       this.mPortOption = { path, baudRate }
 
-      this.mPort?.destroy()
+      this._disconnectSerial()
 
       this.mPort = new SerialPort({ path, baudRate, autoOpen: false })
       this.mPort.open((error) => {

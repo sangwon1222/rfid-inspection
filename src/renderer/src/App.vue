@@ -24,7 +24,7 @@ onMounted(async () => {
       <router-view />
     </div>
 
-    <div
+    <!-- <div
       class="fixed top-40 right-0 min-h-[calc(100vh-50px)] box-border duration-500 z-10"
       :class="store.snbFold ? 'w-0 p-0' : 'w-310 p-1'"
     >
@@ -34,7 +34,7 @@ onMounted(async () => {
         @click="store.snbFold = !store.snbFold"
       />
       <t-snb />
-    </div>
+    </div> -->
   </div>
 </template>
 

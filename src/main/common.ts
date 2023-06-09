@@ -9,19 +9,18 @@ export interface TypeResponse {
 export interface TypeMiddleware {
   _check(): Promise<boolean>
   _reConnect(): Promise<{ ok: boolean; msg: string } | any>
-  _disconnect(): Promise<any>
 }
 
 export class Common {
   async registMiddleware(obj: TypeMiddleware) {
     const properties = Object.getOwnPropertyNames(Object.getPrototypeOf(obj))
-    const exclude = ['constructor', '_reConnect', '_check', '_disconnect']
+    const exclude = ['constructor', '_reConnect', '_check']
 
     for (const property of properties) {
       if (exclude.includes(property)) continue
 
       ipcMain.handle(property, async (_event, res) => {
-        const isConnect = property.substring(0, 7) === 'connect' ? true : await obj._check()
+        const isConnect = property.substring(0, 1) === '_' ? true : await obj._check()
         if (!isConnect) {
           const { ok, msg } = await obj._reConnect()
           return { ok, msg }
