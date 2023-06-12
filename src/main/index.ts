@@ -44,8 +44,9 @@ const createWindow = async () => {
   })
   mainWindow.on('ready-to-show', () => {
     mainWindow.moveTop()
-    mainWindow.setKiosk(true)
-    mainWindow.setMinimumSize(800, 600)
+    mainWindow.setKiosk(false)
+    mainWindow.maximize()
+    // mainWindow.setMinimumSize(800, 600)
     mainWindow.show()
     ApplicationMenu.init(mainWindow)
   })
