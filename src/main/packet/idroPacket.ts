@@ -9,7 +9,7 @@ export default {
    * memory read
    */
   // memoryRead: '>r 1 2 8\r\n', // 판교용
-  memoryRead: '>r 1 2 8\r\n',
+  memoryRead: '>r 1 2 ??\r\n',
 
   //  >1T7465737407
   //  >1T746500

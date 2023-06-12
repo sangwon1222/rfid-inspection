@@ -36,7 +36,6 @@ class TCPmanager {
   }
 
   async antenna(): Promise<{ ok: boolean; msg: string; able?: string; cmd?: string }> {
-    store.loading.isLoading = true
     store.inspector.isInspecting = false
     try {
       store.idro.reading = false
@@ -173,6 +172,7 @@ class TCPmanager {
       const { ok, msg } = await window.TCPapi.onMemoryWrite(store.idro.writeText)
       if (ok) {
         console.log('WRITE: ', store.idro.writeText)
+        console.log(ok, msg)
       } else {
         store.idro.connect = false
         store.idro.connectMsg = msg

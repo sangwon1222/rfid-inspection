@@ -114,13 +114,25 @@ class TCPprinter implements TypeMiddleware {
 
   onMemoryRead(byteLength: number) {
     return new Promise((resolve, _reject) => {
+      const cmd = idroPacket['memoryRead'].replace('??', `${byteLength / 2}`)
       this.mTcp.write(idroPacket['allStop'])
-      this.mTcp.write(idroPacket['memoryRead'])
+      this.mTcp.write(cmd)
 
       this.mTcp.once('data', (data) => {
-        const hex = data.slice(3, 3 + byteLength * 2).toString()
+        // const hex = data.slice(3, 3 + byteLength * 2).toString()
+        const hex = data.slice(3, -2).toString()
         const msg = Common.hex_to_ascii(hex)
-        return resolve({ ok: true, msg })
+        const status = data.toString().slice(-4, -2)
+        switch (status) {
+          case '00':
+            return resolve({ ok: false, msg: '정의 되지 않은 다른 Error가 발생한 경우' })
+          case '03':
+            return resolve({ ok: false, msg: 'Access 하는 Tag의 Memory 범위를 벗어난 경우' })
+          case '04':
+            return resolve({ ok: false, msg: 'Access 하는 Tag의 Memory가 Lock되어 있을 경우' })
+          default:
+            return resolve({ ok: true, msg })
+        }
       })
     })
   }

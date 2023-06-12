@@ -10,7 +10,7 @@ import { onMounted, computed } from 'vue'
 const isLoading = computed(() => store.loading.isLoading)
 
 onMounted(async () => {
-  store.loading.isLoading = true
+  // store.loading.isLoading = true
 
   // IDRO TCP 연결
   await tcpManager.connectPrint()
