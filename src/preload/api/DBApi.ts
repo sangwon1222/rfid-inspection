@@ -9,7 +9,7 @@ export default class DBapi {
   constructor(ipcRenderer) {
     this.mIpcRenderer = ipcRenderer
   }
-  connectDB = async (): Promise<TypeDBResponse> => {
+  async connectDB(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer.invoke('_connectDB').then((result) => resolve(result))
     })
@@ -21,39 +21,50 @@ export default class DBapi {
     })
   }
 
-  read = async (): Promise<TypeDBResponse> => {
+  async read(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer.invoke('read').then((result) => resolve(result))
     })
   }
 
-  readUserSet = async (): Promise<TypeDBResponse> => {
+  async readUserSet(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       const func = 'readUserSet'
       this.mIpcRenderer.invoke(func).then(({ ok, msg, data }) => resolve({ ok, msg, data }))
     })
   }
 
-  updateUserSet = async ({ antenna, buzzer, atn1, atn2, atn3, atn4 }): Promise<TypeDBResponse> => {
+  async updateUserSet({
+    host,
+    port,
+    antenna,
+    buzzer,
+    atn1,
+    atn2,
+    atn3,
+    atn4,
+    com,
+    baudRate
+  }): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const params = { antenna, buzzer, atn1, atn2, atn3, atn4 }
+      const params = { host, port, antenna, buzzer, atn1, atn2, atn3, atn4, com, baudRate }
       this.mIpcRenderer.invoke('updateUserSet', [params]).then((result) => resolve(result))
     })
   }
 
-  update = async (epc): Promise<TypeDBResponse> => {
+  async update(epc): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer.invoke('update', [epc]).then((result) => resolve(result))
     })
   }
 
-  insert = async (epc: any): Promise<TypeDBResponse> => {
+  async insert(excelData: { [key: string]: string | number }): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      this.mIpcRenderer.invoke('insert', [epc]).then((result) => resolve(result))
+      this.mIpcRenderer.invoke('insert', [excelData]).then((result) => resolve(result))
     })
   }
 
-  deleteAll = async (): Promise<TypeDBResponse> => {
+  async deleteAll(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer.invoke('deleteAll').then((result) => resolve(result))
     })

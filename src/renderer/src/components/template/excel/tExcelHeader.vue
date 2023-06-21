@@ -1,12 +1,11 @@
 <script setup lang="ts" scoped>
-import serialManager from '@renderer/util/serialManager'
-import excelManager from '@renderer/util/excelManager'
+import serialManager from '@util/serialManager'
+import excelManager from '@util/excelManager'
 import aButton from '@atoms/aButton.vue'
 import dbManager from '@util/dbManager'
 import { store } from '@store/store'
-import { useRouter } from 'vue-router'
+import { debounce, map } from 'lodash-es'
 
-const router = useRouter()
 const initExcel = async () => {
   store.excel.isExcelUpdated = false
   store.excel.data = []
@@ -17,9 +16,9 @@ const initExcel = async () => {
 const deleteAll = async () => {
   const { ok, msg } = await dbManager.deleteAll()
   if (ok) {
+    await initExcel()
     const { data } = await dbManager.read()
-    initExcel()
-    store.excel.data = data
+    dbManager.setExcelData(data)
   } else {
     alert(msg)
   }
@@ -37,15 +36,12 @@ const updateExcel = async (e: Event) => {
 }
 
 const inspectStart = async () => {
-  const routeName =
-    (store.idro.connect ? '' : 'set-idro') || (store.inspector.connect ? '' : 'set-serial')
-
-  if (store.inspector.connect && store.idro.connect) {
-    await serialManager.inspectStart()
-  } else {
-    router.push(routeName)
-  }
+  await serialManager.inspectStart()
 }
+const inspectStop = debounce(async () => await serialManager.inspectStop('검수 정지'), 1000, {
+  trailing: false,
+  leading: true
+})
 </script>
 
 <template>
@@ -67,15 +63,24 @@ const inspectStart = async () => {
       </button>
     </div>
 
-    <div class="flex items-end">
+    <div class="flex flex-wrap gap-4">
       <a-button
         custom-style="w-60 h-60 rounded border text-white"
         :add-style="`${store.inspector.isInspecting ? 'bg-teal-400' : 'bg-gray-200'}`"
         label="검수"
         @on-parent-event="inspectStart"
       />
-
-      <label v-if="store.inspector.isInspecting">{{ store.inspector.isInspectMsg }}</label>
+      <a-button
+        custom-style="w-60 h-60 rounded border text-white"
+        add-style="bg-gray-200"
+        label="검수 정지"
+        @on-parent-event="inspectStop"
+      />
+    </div>
+    <div class="flex flex-col justify-end px-2 h-full text-red-400">
+      <p>{{ store.idro.connect ? '' : 'IDRO[ TCP ] 연결 에러' }}</p>
+      <p>{{ store.inspector.connect ? '' : '검수기[ 시리얼포트 ] 연결 에러' }}</p>
+      <p><span class="text-white">상태: </span> {{ store.inspector.isInspectMsg }}</p>
     </div>
   </div>
 </template>

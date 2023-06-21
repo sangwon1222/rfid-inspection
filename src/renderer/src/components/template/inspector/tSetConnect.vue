@@ -1,6 +1,7 @@
 <script setup lang="ts" scoped>
 import aLabelInput from '@atoms/aLabelInput.vue'
 import serialManager from '@util/serialManager'
+import { saveSetting } from '@util/common'
 import { reactive, computed } from 'vue'
 import { store } from '@store/store'
 
@@ -27,13 +28,13 @@ const disconnect = async () => {
 const changePath = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.inspector.default.path = target.value
-  await serialManager.connectSerialPort()
+  saveSetting()
 }
 
 const changeBaud = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.inspector.default.baudRate = +target.value
-  await serialManager.connectSerialPort()
+  saveSetting()
 }
 
 const fold = () => (state.isFold = !state.isFold)

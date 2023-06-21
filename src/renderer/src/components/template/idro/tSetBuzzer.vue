@@ -3,10 +3,14 @@ import tSetWrap from '@template/tSetWrap.vue'
 import TCPmanager from '@util/tcpManager'
 import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'
+import { saveSetting } from '@util/common'
 
 const buzzer = async (buzzer: boolean) => {
   const { ok } = buzzer ? await TCPmanager.onBuzzer() : await TCPmanager.offBuzzer()
-  if (ok) store.idro.onBuzzer = buzzer
+  if (ok) {
+    store.idro.onBuzzer = buzzer
+    saveSetting()
+  }
 }
 </script>
 

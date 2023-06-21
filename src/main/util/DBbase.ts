@@ -10,13 +10,14 @@ interface TypeDBResponse {
 const createTableSQL =
   'CREATE TABLE IF NOT EXISTS epcData (' +
   'idx INTEGER NOT NULL UNIQUE, ' +
+  'excelindex INTEGER NOT NULL,' +
   'epc TEXT NOT NULL,' +
   'password TEXT DEFAULT "000000",' +
-  'creteDate TEXT NOT NULL,' +
   'PRIMARY KEY(idx AUTOINCREMENT)' +
   ')'
 
-const day = ['일', '월', '화', '수', '목', '금', '토']
+const excelFilePath = './db/excel-data.db'
+const userSetingFilePath = './db/user-data.txt'
 
 class DBbase implements TypeMiddleware {
   private mDB: any
@@ -54,20 +55,17 @@ class DBbase implements TypeMiddleware {
 
   async createExcelTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const file = './db/excel-data.db'
-
       const bindDB = () => {
-        this.mDB = new sqlite3.Database(file)
+        this.mDB = new sqlite3.Database(excelFilePath)
         this.mDB.run(createTableSQL, () => {
           resolve({ ok: true, data: [], msg: 'DB 생성 완료' })
         })
       }
 
       try {
-        if (!fs.existsSync('./db')) {
-          fs.mkdirSync('./db')
-        }
-        fs.writeFileSync(file, '', { flag: 'wx' })
+        if (!fs.existsSync('./db')) fs.mkdirSync('./db')
+
+        fs.writeFileSync(excelFilePath, 'create', { flag: 'wx' })
         bindDB()
       } catch (e) {
         const error = e as any
@@ -87,14 +85,10 @@ class DBbase implements TypeMiddleware {
 
   async createUserTable(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const file = './db/user-data.txt'
-
       try {
-        fs.writeFileSync(
-          file,
-          `{"antenna": 1,"buzzer": 1,"atn1": 150,"atn2": 150,"atn3": 150,"atn4": 150}`,
-          { flag: 'wx' }
-        )
+        if (!fs.existsSync(userSetingFilePath)) {
+          fs.writeFileSync(userSetingFilePath, '', { flag: 'w' })
+        }
         resolve({ ok: true })
       } catch (e) {
         const error = e as any
@@ -112,25 +106,29 @@ class DBbase implements TypeMiddleware {
     })
   }
 
-  async updateUserSet({ antenna, buzzer, atn1, atn2, atn3, atn4 }): Promise<TypeDBResponse> {
+  async updateUserSet({
+    host,
+    port,
+    antenna,
+    buzzer,
+    atn1,
+    atn2,
+    atn3,
+    atn4,
+    com,
+    baudRate
+  }): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const file = './db/user-data.txt'
       try {
         fs.writeFileSync(
-          file,
-          `{ 
-          "antenna": ${antenna}, 
-          "buzzer": ${buzzer}, 
-          "atn1": ${atn1},
-          "atn2": ${atn2},
-          "atn3": ${atn3},
-          "atn4": ${atn4} 
-      }`,
+          userSetingFilePath,
+          `{"host": "${host}","port": ${port},"antenna": ${antenna},"buzzer": ${buzzer},"atn1": ${atn1},"atn2": ${atn2},"atn3": ${atn3},"atn4": ${atn4},"com": "${com}","baudRate": ${baudRate}}`,
           { flag: 'w' }
         )
         resolve({ ok: true })
       } catch (e) {
         const error = e as any
+        console.log(error)
 
         switch (error.code) {
           case 'EEXIST':
@@ -159,7 +157,7 @@ class DBbase implements TypeMiddleware {
 
   async read(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const sql = 'SELECT * FROM epcData'
+      const sql = 'SELECT excelindex, epc FROM epcData ORDER BY excelindex ASC'
       const data = []
       try {
         this.mDB.all(sql, [], (err: any, rows: []) => {
@@ -181,9 +179,13 @@ class DBbase implements TypeMiddleware {
 
   async readUserSet(): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const file = './db/user-data.txt'
-      const data = fs.readFileSync(file).toString()
-      resolve({ ok: true, msg: 'USER SET', data })
+      try {
+        const data = fs.readFileSync(userSetingFilePath).toString()
+        console.log(data)
+        resolve({ ok: true, msg: 'USER SET', data })
+      } catch (e) {
+        console.log(e)
+      }
     })
   }
 
@@ -194,26 +196,15 @@ class DBbase implements TypeMiddleware {
     })
   }
 
-  async insert(epc: string, pwd?: string): Promise<TypeDBResponse> {
+  async insert(excelData: { [key: string]: string | number }): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       try {
-        const password = pwd ? pwd : '0000'
-        const today = new Date()
-
-        const year = today.getFullYear()
-        const month = `00${today.getMonth() + 1}`.slice(-2)
-        const date = `00${today.getDate()}`.slice(-2)
-        const dayIndex = today.getDay()
-        const hours = `00${today.getHours()}`.slice(-2)
-        const minutes = `00${today.getMinutes()}`.slice(-2)
-        const creteDate = `${year}/${month}/${date}(${day[dayIndex]}) ${hours}:${minutes}`
-
         const insertSQL = `
-                  INSERT INTO epcData
-                  (epc, password, creteDate)
-                  VALUES
-                  ("${epc}","${password}","${creteDate}")
-                `
+          INSERT INTO epcData
+          ( excelindex, epc )
+          VALUES
+          ( "${excelData.excelindex}", "${excelData.epc}" )
+        `
         this.mDB.run(insertSQL, (err) => {
           if (err) {
             return console.error(err.message)
@@ -230,6 +221,7 @@ class DBbase implements TypeMiddleware {
     try {
       const sql = 'DELETE FROM epcData'
       this.mDB.run(sql)
+
       return { ok: true, msg: '데이터 삭제 성공' }
     } catch (e: any) {
       return { ok: false, msg: e.message }

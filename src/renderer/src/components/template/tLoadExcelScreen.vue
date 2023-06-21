@@ -15,7 +15,7 @@ watch(focusIndex, () => {
   target?.focus()
 })
 
-const getEvent = async (e: DragEvent | Event) => {
+const dropInExcelFile = async (e: DragEvent | Event) => {
   const files = (e as DragEvent).dataTransfer.files
   if (!files.length) return
   const input = document.getElementById('xlf') as HTMLInputElement
@@ -34,7 +34,7 @@ const getCssStyle = (i: number) => {
     case false:
       return 'bg-red-200'
     default:
-      return 'bg-white'
+      return ''
   }
 }
 </script>
@@ -43,18 +43,19 @@ const getCssStyle = (i: number) => {
   <div class="excel-screen-wrap">
     <a-excel-button
       label="Drag & Drop A EXCEL FILE"
-      @drop-in.stop.self="getEvent"
+      @drop-in.stop.self="dropInExcelFile"
       @update-excel="updateExcel"
     >
       <div v-if="store.excel.isExcelUpdated" class="table-wrap h-[calc(100vh-130px)]">
-        <div class="relative table w-full">
-          <ul class="sticky top-0 left-0 w-full table-row">
+        <div class="relative table table-auto w-full">
+          <ul class="sticky top-0 left-0 table-row">
             <li
               v-for="(v, i) in excelHeader"
               :key="i"
-              class="py-5 pl-2 pr-10 bg-sky-500 text-slate-100 table-cell break-all max-w-200"
+              class="table-cell bg-sky-800"
+              :class="i ? '' : 'w-50'"
             >
-              {{ v }}
+              <label class="text-white">{{ i ? v : 'idx' }}</label>
             </li>
           </ul>
           <ul
@@ -76,12 +77,15 @@ const getCssStyle = (i: number) => {
 
 <style scoped lang="less">
 .excel-screen-wrap {
-  @apply flex w-full px-6 box-border;
+  @apply flex w-full h-full px-6 box-border;
   .table-wrap {
-    @apply relative overflow-y-auto w-full bg-white;
+    @apply relative overflow-y-auto w-full bg-white cursor-pointer;
+  }
+  .table-row {
+    @apply h-32;
   }
   .table-cell {
-    @apply border py-5 pr-10 pl-2 text-black break-all max-w-200;
+    @apply px-2 break-all border align-middle text-black;
   }
 }
 </style>

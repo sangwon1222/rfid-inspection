@@ -56,11 +56,11 @@ export const store = reactive({
     connectMsg: 'disconnect SERIAL PORT',
     default: { path: 'COM6', baudRate: 9600 },
     isInspecting: false,
-    isInspectMsg: '검수기 FEED 신호 대기',
+    isInspectMsg: '검수 대기',
     inspectData: [],
     status: {
       wait: '검수기 FEED 신호 대기',
-      stop: '검수 중지',
+      stop: '검수 정지',
       start: '검수 중',
       complete: '검수 완료'
     }

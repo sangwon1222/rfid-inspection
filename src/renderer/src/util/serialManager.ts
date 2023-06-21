@@ -1,8 +1,11 @@
 import { store } from '@store/store'
 import { groupLog } from '@util/common'
 import tcpManager from './tcpManager'
+import { debounce } from 'lodash-es'
 
 class Serialmanager {
+  private mIsBusy = false
+  private mInspectIndex = 0
   async connectSerialPort() {
     if (store.inspector.connect === null) return
     store.inspector.connect = null
@@ -47,73 +50,87 @@ class Serialmanager {
 
   async inspectStart() {
     try {
-      if (store.inspector.isInspecting) return
-      store.inspector.isInspecting = true
+      if (this.mIsBusy || store.inspector.isInspecting) return
+      const { data } = store.excel
+      const { length } = data
+      store.excel.checkedRFID = []
+      this.mIsBusy = true
 
-      const start = await window.Serialapi.getStartScan()
-      store.inspector.isInspecting = start.ok
-      if (start.ok) {
+      for (let i = 0; i < length; i++) {
+        store.inspector.isInspectMsg = 'FEED 신호 대기'
+        const start = await window.Serialapi.getStartScan()
+
+        store.inspector.isInspecting = start.ok
+        if (!start.ok) return { ok: false, msg: 'FEED 신호 불량' }
+
+        // 개별 RFID 검사 결과
+        this.mInspectIndex = i
         const { ok, msg } = await this.inspect()
-        return { ok, msg }
-      } else {
-        return { ok: false, msg: start.msg }
+        store.inspector.isInspecting = start.ok
+        store.inspector.isInspectMsg = msg
+        if (!ok) return { ok, msg }
       }
     } catch (e) {
       console.log(e)
+      this.inspectStop()
       return { ok: false, msg: e.message }
     } finally {
-      this.stopInspect()
+      this.mInspectIndex = 0
+      this.mIsBusy = false
     }
   }
 
   async inspect() {
     const { data } = store.excel
-    const { length } = data
+    const { epc } = data[this.mInspectIndex]
 
-    for (let i = 0; i < length; i++) {
-      if (!store.inspector.isInspecting) return this.stopInspect()
-      store.inspector.isInspectMsg = store.inspector.status.start
+    if (!store.inspector.isInspecting) return this.inspectStop()
+    store.inspector.isInspectMsg = store.inspector.status.start
 
-      const { epc } = data[i]
-      store.idro.writeText = epc
-      store.idro.byteLength = epc.length
+    store.idro.writeText = epc
+    store.idro.byteLength = epc.length
 
-      store.inspector.isInspectMsg = `write [${epc}]`
-      await tcpManager.onMemoryWrite()
-      const read = await tcpManager.onMemoryRead()
-      store.inspector.isInspectMsg = `read ${read.msg}`
+    store.inspector.isInspectMsg = `[${epc}] WRITE 시도 중`
+    const write = await tcpManager.onMemoryWrite()
+    if (write.ok) store.inspector.isInspectMsg = `[${epc}] WRITE 성공, READ 시도 중`
+    else {
+      store.inspector.isInspecting = false
+      this.inspectStop(`[${epc}] WRITE 실패 / ${write.msg} / 검수 정지`)
+      return
+    }
+    const read = await tcpManager.onMemoryRead()
 
-      if (read.ok) {
-        const isPassRfid = epc === read.msg
-        await this.setRFIDQuality(i, isPassRfid)
-      } else {
-        return this.stopInspect(`READ 기능 에러 [${read.msg}]`)
-      }
-
-      if (!store.inspector.isInspecting) return this.stopInspect()
-
-      store.inspector.isInspectMsg = store.inspector.status.wait
-      const feed = await window.Serialapi.getStartScan()
-      if (feed.ok) continue
+    if (read.ok) {
+      const isPassRfid = epc === read.msg
+      store.inspector.isInspectMsg = `READ 결과 : [${read.msg}] / [${isPassRfid ? '양품' : '불량'}]`
+      await this.setRFIDQuality(isPassRfid)
+    } else {
+      return this.inspectStop(`READ 실패 : [${read.msg}]`)
     }
 
-    store.inspector.isInspectMsg = store.inspector.status.complete
+    if (!store.inspector.isInspecting) {
+      this.inspectStop()
+      return { ok: false, msg: '검수 정지' }
+    }
+
     return { ok: true, msg: '검수 완료' }
   }
 
-  async setRFIDQuality(index: number, isPass: boolean) {
+  async setRFIDQuality(isPass: boolean) {
     const status = isPass ? 'passed' : 'defective'
     await window.Serialapi[status]()
 
-    store.excel.checkedRFID[index] = isPass
-    store.excel.focusCellIndex = index
+    store.excel.checkedRFID[this.mInspectIndex] = isPass
+    store.excel.focusCellIndex = this.mInspectIndex
   }
 
-  stopInspect(message?: string) {
+  async inspectStop(message?: string) {
     const msg = message ? message : store.inspector.status.stop
     store.inspector.isInspectMsg = msg
     store.idro.writeText = ''
     store.inspector.isInspecting = false
+    this.mIsBusy = false
+    this.mInspectIndex = 0
     return { ok: false, msg }
   }
 }

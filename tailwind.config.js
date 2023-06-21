@@ -26,6 +26,7 @@ module.exports = {
         135: '135deg',
         225: '225deg'
       },
+      lineHeight: spacing,
       spacing: spacing,
       width: spacing,
       minWidth: spacing,

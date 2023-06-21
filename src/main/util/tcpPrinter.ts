@@ -48,13 +48,13 @@ class TCPprinter implements TypeMiddleware {
         this.mIsConnected = true
         resolve(result)
       })
+      this.mTcp.once('data', () => null)
       const list = ['timeout', 'end', 'close', 'error', 'connect']
       for (const status of list) {
         this.mTcp.once(status, (e) => {
           if (e) {
             this.mIsConnected = false
             const result = { ok: false, msg: `TCP STATUS [${status}]`, host, port }
-            console.log(`TCP [ ${status} ]`, e)
             resolve(result)
             return
           }
@@ -114,7 +114,8 @@ class TCPprinter implements TypeMiddleware {
 
   onMemoryRead(byteLength: number) {
     return new Promise((resolve, _reject) => {
-      const cmd = idroPacket['memoryRead'].replace('??', `${byteLength / 2}`)
+      const cmd = idroPacket['memoryRead'].replace('??', `${Math.floor(byteLength / 4)}`)
+      console.log(cmd)
       this.mTcp.write(idroPacket['allStop'])
       this.mTcp.write(cmd)
 
@@ -140,7 +141,7 @@ class TCPprinter implements TypeMiddleware {
   onMemoryWrite(encode: string) {
     return new Promise((resolve, _reject) => {
       const format = encode.length % 2 ? `${encode}0` : encode
-      const hex = Common.ascii_to_hexa(format)
+      const hex = Common.ascii_to_hex(format)
       const cmd = idroPacket['notPassWriteTag'].replace('??', hex)
 
       this.mTcp.write(cmd)
@@ -152,11 +153,18 @@ class TCPprinter implements TypeMiddleware {
           '04': 'Memory Locked'
         }
         const status = data.toString().slice(3, -2)
-        return resolve({
+        resolve({
           ok: status === '01',
           msg: result[status]
         })
       })
+
+      // setTimeout(() => {
+      //   resolve({
+      //     ok: false,
+      //     msg: 'TIMEOUT 200ms'
+      //   })
+      // }, 200)
     })
   }
 

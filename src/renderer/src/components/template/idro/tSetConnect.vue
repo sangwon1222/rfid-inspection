@@ -3,6 +3,7 @@ import aLabelInput from '@atoms/aLabelInput.vue'
 import TCPmanager from '@util/tcpManager'
 import { store } from '@store/store'
 import { reactive, computed } from 'vue'
+import { saveSetting } from '@util/common'
 const state = reactive({ isFold: false })
 
 const statusColor = computed(() => {
@@ -28,13 +29,13 @@ const disconnect = async () => {
 const changeHost = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.idro.changedInfo.host = target.value
-  await TCPmanager.connectPrint()
+  saveSetting()
 }
 
 const changePort = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
   store.idro.changedInfo.port = +target.value
-  await TCPmanager.connectPrint()
+  saveSetting()
 }
 const fold = () => (state.isFold = !state.isFold)
 </script>

@@ -1,13 +1,26 @@
 import { store } from '@store/store'
 import { groupLog } from '@util/common'
+import { map } from 'lodash-es'
+
+interface TypeUserSetting {
+  host: string
+  port: number
+  antenna: number
+  buzzer: number
+  atn1: number
+  atn2: number
+  atn3: number
+  atn4: number
+  com: string
+  baudRate: number
+}
 
 class DBmanager {
   async connectDB() {
     try {
       const { ok, msg, data } = await window.DBapi.connectDB()
 
-      store.excel.data = ok ? data : []
-      store.excel.isExcelUpdated = store.excel.data.length > 0
+      this.setExcelData(data)
 
       groupLog(ok, 'DB STATUS', [`${data.length}개의 데이터 ${msg}`])
 
@@ -17,6 +30,19 @@ class DBmanager {
       store.excel.data = []
       return { ok: false, msg: e, data: [] }
     }
+  }
+
+  setExcelData(rawData) {
+    store.excel.isExcelUpdated = rawData.length > 0
+
+    const data = store.excel.isExcelUpdated
+      ? map(rawData, (e) => {
+          e['result'] = ''
+          return e
+        })
+      : []
+
+    store.excel.data = data
   }
 
   async readUserSet() {
@@ -29,9 +55,8 @@ class DBmanager {
     }
   }
 
-  async updateUserSet({ antenna, buzzer, atn1, atn2, atn3, atn4 }) {
+  async updateUserSet(params: TypeUserSetting) {
     try {
-      const params = { antenna, buzzer, atn1, atn2, atn3, atn4 }
       const { ok, msg } = await window.DBapi.updateUserSet(params)
       return { ok, msg }
     } catch (e) {
@@ -60,9 +85,9 @@ class DBmanager {
     }
   }
 
-  async insert(epc: any) {
+  async insert(excelData: { [key: string]: string | number }) {
     try {
-      const result = await window.DBapi.insert(epc)
+      const result = await window.DBapi.insert(excelData)
       return result
     } catch (e) {
       console.error(e)

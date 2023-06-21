@@ -46,6 +46,8 @@ class Serial implements TypeMiddleware {
           this.mPort.write('connect')
           this.mPortConnected = true
 
+          this.mPort.once('data', () => null)
+
           const msg = 'SERIAL PORT 연결 성공'
           console.log(msg)
           resolve({ ok: true, msg })
@@ -59,16 +61,18 @@ class Serial implements TypeMiddleware {
 
   async getStartScan() {
     return new Promise((resolve, _reject) => {
-      console.log('getStartScan', this.mPort.isOpen)
-
       this.mPort.once('data', (data) => {
         // H02 H45 H53 H03
         const feedHex = Buffer.from([0x02, 0x45, 0x53, 0x03])
-        const feedCmd = Common.hex_to_hexa(feedHex) //'02455303'
-        const receiveData = Common.hex_to_hexa(data)
-        if (feedCmd === receiveData) resolve({ ok: true, msg: 'feed-start' })
-        else resolve({ ok: false, msg: '검수기에서 FEED를 눌러주세요' })
+        const feedCmd = Common.buffer_to_hex(feedHex) //'02455303'
+        const receiveData = Common.buffer_to_hex(data)
+
+        if (feedCmd === receiveData) resolve({ ok: true, msg: '검수 대기 완료' })
+        else resolve({ ok: false, msg: '검수 FEED 신호 불량' })
       })
+      setTimeout(() => {
+        resolve({ ok: false, msg: '검수 FEED 신호 TIME OUT (5초)' })
+      }, 5000)
     })
   }
 

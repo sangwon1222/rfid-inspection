@@ -53,14 +53,14 @@ class TCPmanager {
         console.log('활성화 안테나:', able)
         console.log('커맨드:', cmd)
       } else {
-        store.idro.connect = false
+        // store.idro.connect = false
         store.idro.connectMsg = msg
       }
       console.groupEnd()
       return { ok, msg, able, cmd }
     } catch (e) {
       console.error(e)
-      store.idro.connect = false
+      // store.idro.connect = false
       store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     } finally {
@@ -86,12 +86,12 @@ class TCPmanager {
         console.log(msg)
         console.groupEnd()
       } else {
-        store.idro.connect = false
+        // store.idro.connect = false
         store.idro.connectMsg = msg
       }
       return { ok, msg }
     } catch (e) {
-      store.idro.connect = false
+      // store.idro.connect = false
       store.idro.connectMsg = e.message
     }
   }
@@ -107,12 +107,12 @@ class TCPmanager {
         console.log(msg)
         console.groupEnd()
       } else {
-        store.idro.connect = false
+        // store.idro.connect = false
         store.idro.connectMsg = msg
       }
       return { ok, msg }
     } catch (e) {
-      store.idro.connect = false
+      // store.idro.connect = false
       store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     }
@@ -129,12 +129,12 @@ class TCPmanager {
         console.log(msg)
         console.groupEnd()
       } else {
-        store.idro.connect = false
+        // store.idro.connect = false
         store.idro.connectMsg = msg
       }
       return { ok, msg }
     } catch (e) {
-      store.idro.connect = false
+      // store.idro.connect = false
       store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     }
@@ -155,12 +155,12 @@ class TCPmanager {
       if (ok) {
         console.log('READ: ', msg)
       } else {
-        store.idro.connect = false
+        // store.idro.connect = false
         store.idro.connectMsg = msg
       }
       return { ok, msg }
     } catch (e) {
-      store.idro.connect = false
+      // store.idro.connect = false
       store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     }
@@ -174,12 +174,12 @@ class TCPmanager {
         console.log('WRITE: ', store.idro.writeText)
         console.log(ok, msg)
       } else {
-        store.idro.connect = false
+        // store.idro.connect = false
         store.idro.connectMsg = msg
       }
       return { ok, msg }
     } catch (e) {
-      store.idro.connect = false
+      // store.idro.connect = false
       store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     }

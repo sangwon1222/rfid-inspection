@@ -3,6 +3,7 @@ import { map } from 'lodash'
 import { reactive } from 'vue'
 import { store } from '@store/store'
 import TCPmanager from '@util/tcpManager'
+import { saveSetting } from '@util/common'
 import tSetWrap from '@template/tSetWrap.vue'
 
 const state = reactive({ errorPowerGain: false })
@@ -22,6 +23,7 @@ const setPowerGain = async (antennaIndex: number) => {
       store.idro.powerGain[`atn${antennaIndex}`] = power
     }
     await TCPmanager.onPowerGain(antennaIndex)
+    saveSetting()
   } catch (e) {
     console.log(e)
   }

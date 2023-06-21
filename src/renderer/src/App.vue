@@ -1,26 +1,32 @@
 <script setup lang="ts" scoped>
 import tGnb from '@template/navigation/tGlobalNaviBar.vue'
-import tSnb from '@template/navigation/tSideNaviBar.vue'
 import serialManager from '@util/serialManager'
 import tLoading from '@template/tLoading.vue'
 import tcpManager from '@util/tcpManager'
 import dbManager from '@util/dbManager'
 import { store } from '@store/store'
 import { onMounted, computed } from 'vue'
+import { saveSetting } from '@util/common'
 const isLoading = computed(() => store.loading.isLoading)
 
 onMounted(async () => {
-  // store.loading.isLoading = true
+  // DB 엑셀 연결, 유저 설정(.txt) 불러오기
+  await dbManager.connectDB()
+
+  const before = await dbManager.readUserSet()
+  // 유저 설정(.txt) 있으면 적용
+  if (before.data) await setUserSet(JSON.parse(before.data))
+  else {
+    // 없으면 store 값 적용
+    await saveSetting()
+    const update = await dbManager.readUserSet()
+    await setUserSet(JSON.parse(update.data))
+  }
 
   // IDRO TCP 연결
   await tcpManager.connectPrint()
   // 검수기 시리얼포트 연결
   await serialManager.connectSerialPort()
-  // DB 엑셀 연결, 유저 설정(.txt) 불러오기
-  await dbManager.connectDB()
-  const { ok, data } = await dbManager.readUserSet()
-  // 유저 설정(.txt) 있으면 적용
-  if (ok) await setUserSet(JSON.parse(data))
 
   store.loading.init()
 })
@@ -29,14 +35,17 @@ onMounted(async () => {
  * @description 유저 정보(.txt) 불러와서 IDRO 설정
  * @param data text=> JSON으로 변환한 데이터
  */
-const setUserSet = async (data: { [key: string]: number }) => {
+const setUserSet = async (data: { [key: string]: any }) => {
   try {
-    const { antenna, buzzer, atn1, atn2, atn3, atn4 } = data
+    const { host, port, antenna, buzzer, atn1, atn2, atn3, atn4, com, baudRate } = data
     const atnInfo = store.idro.atnPacket()[antenna]
 
+    store.idro.default = { host, port }
     store.idro.atnInfo = { ...atnInfo }
     store.idro.powerGain = { atn1, atn2, atn3, atn4, atn0: 300 }
     store.idro.onBuzzer = Boolean(buzzer)
+
+    store.inspector.default = { path: com, baudRate }
     await setIdroInit()
   } catch (e) {
     console.error(e)

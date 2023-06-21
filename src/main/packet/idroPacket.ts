@@ -23,7 +23,8 @@ export default {
   // EPC Bank 1word “1234” write
   // >w 1 2 1234
   notPassWriteTag: '>w 1 2 ??\r\n',
-  // notPassWriteTag: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
+  // setPwWriteTag: '>w 1 2 1234  \r\n', // 1234=> 비밀번호 자리
+  blockWriteTag: '>B 1 2 ??\r\n',
 
   reset: '>E 1 2 6\r\n',
   start: '>start\r\n',

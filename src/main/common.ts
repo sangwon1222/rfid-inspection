@@ -36,7 +36,7 @@ export class Common {
     }
   }
 
-  ascii_to_hexa(str: string) {
+  ascii_to_hex(str: string) {
     const arr1 = [] as any
     for (let n = 0, l = str.length; n < l; n++) {
       const hex = Number(str.charCodeAt(n)).toString(16)
@@ -50,7 +50,7 @@ export class Common {
     return output.toString()
   }
 
-  hex_to_hexa(bf: Buffer) {
+  buffer_to_hex(bf: Buffer) {
     const hex = [] as Array<string>
     for (const b of bf) {
       const h = Buffer.from([b]).toString('hex')
