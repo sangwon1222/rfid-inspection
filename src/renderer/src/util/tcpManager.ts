@@ -1,5 +1,5 @@
 import { store } from '@store/store'
-import { groupLog } from '@util/common'
+import { groupLog, hex2a } from '@util/common'
 
 class TCPmanager {
   async connectPrint() {
@@ -148,19 +148,25 @@ class TCPmanager {
     //
   }
 
+  async onEPCWritePC(byte: number) {
+    try {
+      const { ok, msg } = await window.TCPapi.onEPCWritePC(byte)
+      return { ok, msg }
+    } catch (e) {
+      return { ok: false, msg: e.message }
+    }
+  }
+
   async onMemoryRead() {
     store.idro.writing = false
     try {
-      const { ok, msg } = await window.TCPapi.onMemoryRead(store.idro.byteLength)
-      if (ok) {
-        console.log('READ: ', msg)
-      } else {
-        // store.idro.connect = false
-        store.idro.connectMsg = msg
-      }
+      const { ok, msg } = await window.TCPapi.onMemoryRead(
+        store.idro.byteLength,
+        store.idro.timeout
+      )
+      if (!ok) store.idro.connectMsg = msg
       return { ok, msg }
     } catch (e) {
-      // store.idro.connect = false
       store.idro.connectMsg = e.message
       return { ok: false, msg: e.message }
     }
@@ -168,19 +174,28 @@ class TCPmanager {
 
   async onMemoryWrite() {
     store.idro.reading = false
+    if (!store.idro.fixPc) {
+      store.idro.byteLength = store.idro.writeText.length / 2
+    }
     try {
-      const { ok, msg } = await window.TCPapi.onMemoryWrite(store.idro.writeText)
-      if (ok) {
-        console.log('WRITE: ', store.idro.writeText)
-        console.log(ok, msg)
-      } else {
-        // store.idro.connect = false
-        store.idro.connectMsg = msg
-      }
+      const { ok, msg } = await window.TCPapi.onMemoryWrite(
+        store.idro.writeText,
+        store.idro.timeout
+      )
+      if (!ok) store.idro.connectMsg = msg
       return { ok, msg }
     } catch (e) {
-      // store.idro.connect = false
       store.idro.connectMsg = e.message
+      return { ok: false, msg: e.message }
+    }
+  }
+
+  async onEPCReadPC() {
+    try {
+      const { ok, msg } = await window.TCPapi.onEPCReadPC()
+      return { ok, msg }
+    } catch (e) {
+      console.error(e)
       return { ok: false, msg: e.message }
     }
   }

@@ -15,6 +15,7 @@ export const groupLog = (ok: boolean, label: string, ary: string[]) => {
 
 export const saveSetting = async () => {
   const { path, baudRate } = store.inspector.default
+  const { byteLength } = store.idro
 
   const { host, port } = store.idro.default
   const { atn1, atn2, atn3, atn4 } = store.idro.powerGain
@@ -42,6 +43,23 @@ export const saveSetting = async () => {
     atn3,
     atn4,
     com: path,
-    baudRate
+    baudRate,
+    byteLength
   })
+}
+
+export const hex2a = (hexx: string) => {
+  let str = ''
+  for (let i = 0; i < hexx.length; i += 2)
+    str += String.fromCharCode(parseInt(hexx.substr(i, 2), 16))
+  return str
+}
+
+export const ascii_to_hex = (str: string) => {
+  const arr1 = [] as any
+  for (let n = 0, l = str.length; n < l; n++) {
+    const hex = Number(str.charCodeAt(n)).toString(16)
+    arr1.push(hex)
+  }
+  return arr1.join('')
 }

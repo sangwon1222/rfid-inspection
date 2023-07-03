@@ -13,6 +13,7 @@ interface TypeUserSetting {
   atn4: number
   com: string
   baudRate: number
+  byteLength: number
 }
 
 class DBmanager {
@@ -37,6 +38,8 @@ class DBmanager {
 
     const data = store.excel.isExcelUpdated
       ? map(rawData, (e) => {
+          e['write'] = ''
+          e['read'] = ''
           e['result'] = ''
           return e
         })

@@ -49,40 +49,49 @@ class Serialmanager {
   }
 
   async inspectStart() {
+    if (this.mIsBusy) return
+
+    const { data } = store.excel
+    if (this.mInspectIndex >= data.length - 1) {
+      this.mInspectIndex = 0
+      store.excel.checkedRFID = []
+    }
     try {
       if (this.mIsBusy || store.inspector.isInspecting) return
-      const { data } = store.excel
       const { length } = data
-      store.excel.checkedRFID = []
       this.mIsBusy = true
 
-      for (let i = 0; i < length; i++) {
+      for (let i = this.mInspectIndex; i < length; i++) {
         store.inspector.isInspectMsg = 'FEED 신호 대기'
         const start = await window.Serialapi.getStartScan()
-
         store.inspector.isInspecting = start.ok
+        store.inspector.isInspectMsg = start.msg
+
         if (!start.ok) return { ok: false, msg: 'FEED 신호 불량' }
 
         // 개별 RFID 검사 결과
         this.mInspectIndex = i
-        const { ok, msg } = await this.inspect()
-        store.inspector.isInspecting = start.ok
+        const { msg } = await this.inspect()
         store.inspector.isInspectMsg = msg
-        if (!ok) return { ok, msg }
+        // if (!ok) return { ok, msg }
       }
     } catch (e) {
       console.log(e)
       this.inspectStop()
       return { ok: false, msg: e.message }
     } finally {
-      this.mInspectIndex = 0
       this.mIsBusy = false
+      store.inspector.isInspecting = false
     }
   }
 
   async inspect() {
     const { data } = store.excel
     const { epc } = data[this.mInspectIndex]
+
+    store.excel.data[this.mInspectIndex].write = ''
+    store.excel.data[this.mInspectIndex].read = ''
+    store.excel.data[this.mInspectIndex].result = ''
 
     if (!store.inspector.isInspecting) return this.inspectStop()
     store.inspector.isInspectMsg = store.inspector.status.start
@@ -91,29 +100,25 @@ class Serialmanager {
     store.idro.byteLength = epc.length
 
     store.inspector.isInspectMsg = `[${epc}] WRITE 시도 중`
+
     const write = await tcpManager.onMemoryWrite()
-    if (write.ok) store.inspector.isInspectMsg = `[${epc}] WRITE 성공, READ 시도 중`
-    else {
-      store.inspector.isInspecting = false
-      this.inspectStop(`[${epc}] WRITE 실패 / ${write.msg} / 검수 정지`)
-      return
-    }
+    store.inspector.isInspectMsg = `write: [ ${write.msg} ] ${write.ok ? '성공' : '실패'},`
+    store.excel.data[this.mInspectIndex].write = write.msg
+
     const read = await tcpManager.onMemoryRead()
+    const isPassRfid = write.msg === read.msg
+    store.inspector.isInspectMsg = `read: [ ${read.msg} ] / [ ${isPassRfid ? '양품' : '불량'} ]`
+    store.excel.data[this.mInspectIndex].read = read.msg
 
-    if (read.ok) {
-      const isPassRfid = epc === read.msg
-      store.inspector.isInspectMsg = `READ 결과 : [${read.msg}] / [${isPassRfid ? '양품' : '불량'}]`
-      await this.setRFIDQuality(isPassRfid)
-    } else {
-      return this.inspectStop(`READ 실패 : [${read.msg}]`)
-    }
+    console.log(this.mInspectIndex + 1, write.msg, read.msg)
 
-    if (!store.inspector.isInspecting) {
-      this.inspectStop()
-      return { ok: false, msg: '검수 정지' }
-    }
+    await this.setRFIDQuality(isPassRfid)
+    store.excel.data[this.mInspectIndex].result = isPassRfid ? '양품' : '불량'
 
-    return { ok: true, msg: '검수 완료' }
+    const status = store.inspector.isInspecting ? '완료' : '정지'
+
+    if (!store.inspector.isInspecting) this.inspectStop()
+    return { ok: store.inspector.isInspecting, msg: `검수 ${status}` }
   }
 
   async setRFIDQuality(isPass: boolean) {
@@ -130,7 +135,7 @@ class Serialmanager {
     store.idro.writeText = ''
     store.inspector.isInspecting = false
     this.mIsBusy = false
-    this.mInspectIndex = 0
+
     return { ok: false, msg }
   }
 }

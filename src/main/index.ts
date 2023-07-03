@@ -36,11 +36,12 @@ const createWindow = async () => {
 
   mainWindow.on('close', function (event) {
     event.preventDefault()
-    if (tray.quitMode) {
-      app.exit()
-    } else {
-      mainWindow.hide()
-    }
+    app.exit()
+    // if (tray.quitMode) {
+    //   app.exit()
+    // } else {
+    //   mainWindow.hide()
+    // }
   })
   mainWindow.on('ready-to-show', () => {
     mainWindow.moveTop()

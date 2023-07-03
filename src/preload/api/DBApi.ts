@@ -44,10 +44,23 @@ export default class DBapi {
     atn3,
     atn4,
     com,
-    baudRate
+    baudRate,
+    byteLength
   }): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
-      const params = { host, port, antenna, buzzer, atn1, atn2, atn3, atn4, com, baudRate }
+      const params = {
+        host,
+        port,
+        antenna,
+        buzzer,
+        atn1,
+        atn2,
+        atn3,
+        atn4,
+        com,
+        baudRate,
+        byteLength
+      }
       this.mIpcRenderer.invoke('updateUserSet', [params]).then((result) => resolve(result))
     })
   }

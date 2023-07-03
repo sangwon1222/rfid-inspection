@@ -116,13 +116,14 @@ class DBbase implements TypeMiddleware {
     atn3,
     atn4,
     com,
-    baudRate
+    baudRate,
+    byteLength
   }): Promise<TypeDBResponse> {
     return new Promise((resolve, _reject) => {
       try {
         fs.writeFileSync(
           userSetingFilePath,
-          `{"host": "${host}","port": ${port},"antenna": ${antenna},"buzzer": ${buzzer},"atn1": ${atn1},"atn2": ${atn2},"atn3": ${atn3},"atn4": ${atn4},"com": "${com}","baudRate": ${baudRate}}`,
+          `{"host": "${host}","port": ${port},"antenna": ${antenna},"buzzer": ${buzzer},"atn1": ${atn1},"atn2": ${atn2},"atn3": ${atn3},"atn4": ${atn4},"com": "${com}","baudRate": ${baudRate},"byteLength":${byteLength}}`,
           { flag: 'w' }
         )
         resolve({ ok: true })
@@ -208,11 +209,12 @@ class DBbase implements TypeMiddleware {
         this.mDB.run(insertSQL, (err) => {
           if (err) {
             return console.error(err.message)
+          } else {
+            resolve({ ok: true, msg: '데이터 추가 성공' })
           }
         })
-        resolve({ ok: true, msg: '데이터 추가 성공' })
       } catch (e: any) {
-        resolve({ ok: false, msg: e.message })
+        resolve({ ok: false, msg: `${excelData.excelindex}번째 데이터 손실,${e.message}` })
       }
     })
   }

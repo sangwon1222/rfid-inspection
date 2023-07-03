@@ -47,7 +47,7 @@ const onBlur = (e, atnIndex: number) => {
 
 <template>
   <t-set-wrap>
-    <div class="flex flex-col">
+    <div class="flex flex-col w-full h-40">
       <label> ANTENNA POWER GAIN</label>
       <label class="text-xs"> min:50 max: 310</label>
     </div>

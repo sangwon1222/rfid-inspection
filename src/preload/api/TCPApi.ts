@@ -59,18 +59,30 @@ export default class TCPApi {
     })
   }
 
-  async onMemoryRead(byteLength: number) {
+  async onMemoryRead(byteLength: number, timeout: number) {
     return new Promise((resolve, _reject) => {
-      const params = [byteLength]
+      const params = [byteLength, timeout]
       this.mIpcRenderer.invoke('onMemoryRead', params).then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 
-  async onMemoryWrite(encode: string) {
+  async onMemoryWrite(encode: string, timeout: number) {
     return new Promise((resolve, _reject) => {
       this.mIpcRenderer
-        .invoke('onMemoryWrite', [encode])
+        .invoke('onMemoryWrite', [encode, timeout])
         .then(({ ok, msg }) => resolve({ ok, msg }))
+    })
+  }
+
+  async onEPCReadPC() {
+    return new Promise((resolve, _reject) => {
+      this.mIpcRenderer.invoke('onEPCReadPC').then(({ ok, msg }) => resolve({ ok, msg }))
+    })
+  }
+
+  async onEPCWritePC(byte: number) {
+    return new Promise((resolve, _reject) => {
+      this.mIpcRenderer.invoke('onEPCWritePC', [byte]).then(({ ok, msg }) => resolve({ ok, msg }))
     })
   }
 }

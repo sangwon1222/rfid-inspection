@@ -5,18 +5,31 @@ import aButton from '@atoms/aButton.vue'
 import { store } from '@store/store'
 import { saveSetting } from '@util/common'
 
+let isBusy = false
 const buzzer = async (buzzer: boolean) => {
+  if (isBusy) return
+  isBusy = true
+
+  setTimeout(() => {
+    isBusy = false
+  }, 3000)
+
   const { ok } = buzzer ? await TCPmanager.onBuzzer() : await TCPmanager.offBuzzer()
   if (ok) {
     store.idro.onBuzzer = buzzer
     saveSetting()
   }
+
+  isBusy = false
 }
 </script>
 
 <template>
   <t-set-wrap>
-    <label>BUZZER</label>
+    <div class="flex w-full h-40">
+      <label>BUZZER</label>
+      <p v-if="isBusy">시도 중...</p>
+    </div>
     <div class="flex flex-wrap gap-2">
       <a-button
         v-for="(v, i) in [true, false]"

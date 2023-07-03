@@ -37,9 +37,10 @@ onMounted(async () => {
  */
 const setUserSet = async (data: { [key: string]: any }) => {
   try {
-    const { host, port, antenna, buzzer, atn1, atn2, atn3, atn4, com, baudRate } = data
+    const { host, port, antenna, buzzer, atn1, atn2, atn3, atn4, com, baudRate, byteLength } = data
     const atnInfo = store.idro.atnPacket()[antenna]
 
+    store.idro.byteLength = byteLength
     store.idro.default = { host, port }
     store.idro.atnInfo = { ...atnInfo }
     store.idro.powerGain = { atn1, atn2, atn3, atn4, atn0: 300 }

@@ -17,7 +17,9 @@ const setAntenna = async (antennaIndex: number) => {
 
 <template>
   <t-set-wrap>
-    <label> ANTENNA STATUS</label>
+    <div class="flex flex-col w-full h-40">
+      <label> ANTENNA STATUS</label>
+    </div>
     <div class="flex flex-wrap gap-2">
       <a-button
         v-for="(v, i) in [1, 2, 3, 4]"

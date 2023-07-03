@@ -28,22 +28,31 @@ const disconnect = async () => {
 
 const changeHost = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
-  store.idro.changedInfo.host = target.value
   saveSetting()
 }
 
 const changePort = async (e: InputEvent) => {
   const target = e.currentTarget as HTMLInputElement
-  store.idro.changedInfo.port = +target.value
   saveSetting()
 }
 const fold = () => (state.isFold = !state.isFold)
+
+const hoverNotFixPc = (e) => {
+  const target = e.currentTarget.lastChild as HTMLParagraphElement
+  target.classList.remove('opacity-0')
+  target.classList.add('opacity-1')
+}
+const leaveNotFixPc = (e) => {
+  const target = e.currentTarget.lastChild as HTMLParagraphElement
+  target.classList.remove('opacity-1')
+  target.classList.add('opacity-0')
+}
 </script>
 
 <template>
   <div
     class="overflow-hidden flex flex-col items-center gap-3 w-180 border bg-gray-300 duration-100"
-    :class="state.isFold ? 'h-40' : 'h-240'"
+    :class="state.isFold ? 'h-40' : 'h-380'"
   >
     <button
       class="grid grid-cols-1p-2 w-full border text-center font-bold"
@@ -71,5 +80,29 @@ const fold = () => (state.isFold = !state.isFold)
 
     <a-label-input label="host:" :value="store.idro.default.host" @on-change="changeHost" />
     <a-label-input label="port:" :value="`${store.idro.default.port}`" @on-change="changePort" />
+
+    <div class="grid grid-cols-2 border">
+      <button
+        class="border p-4"
+        :class="store.idro.fixPc ? 'bg-teal-300' : ''"
+        @click="store.idro.fixPc = true"
+      >
+        PC 고정
+      </button>
+      <button
+        class="border relative"
+        :class="store.idro.fixPc ? '' : 'bg-teal-300'"
+        @click="store.idro.fixPc = false"
+        @mouseenter="hoverNotFixPc"
+        @mouseleave="leaveNotFixPc"
+      >
+        PC 변동
+        <p
+          class="flex items-center justify-center absolute top-full left-[-80px] w-160 h-60 bg-white opacity-0"
+        >
+          write data 길이에 <br />따라 자동으로 EPC PC값 변경
+        </p>
+      </button>
+    </div>
   </div>
 </template>

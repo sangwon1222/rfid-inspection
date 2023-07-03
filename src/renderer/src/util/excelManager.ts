@@ -8,6 +8,7 @@ class ExcelManager {
 
   async updateExcel(file) {
     return new Promise((resolve, _reject) => {
+      store.loading.isLoading = true
       this.excelReader.onloadend = async () => {
         await dbManager.deleteAll()
 
@@ -28,11 +29,13 @@ class ExcelManager {
             data['excelindex'] = i + 1
             return (data[name.toLowerCase()] = excelData[i][name])
           })
+
           await dbManager.insert(data)
           store.loading.progress = i + 1
         }
 
         const { ok, data, msg } = await dbManager.read()
+
         if (ok) {
           dbManager.setExcelData(data)
         } else {
@@ -40,6 +43,7 @@ class ExcelManager {
           store.excel.isExcelUpdated = false
           store.excel.data = []
         }
+        store.loading.init()
         resolve(true)
       }
       this.excelReader.readAsArrayBuffer(file)

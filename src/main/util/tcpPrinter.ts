@@ -2,18 +2,20 @@ import idroPacket from '../packet/idroPacket'
 import Common, { TypeMiddleware, TypeResponse } from '../common'
 import net from 'net'
 
-// const buzzer = await getIdroStatus(this.mTcp, idroPacket['getBuzzer'])
-// console.log({ buzzer })
-// const getIdroStatus = (tcp: net.Socket, cmd: string) => {
-//   return new Promise((resolve, _reject) => {
-//     tcp.write(cmd)
-//     tcp.once('data', (data) => {
-//       setTimeout(() => {
-//         resolve(data.toString())
-//       }, 1000)
-//     })
-//   })
-// }
+// renderer/src/components/template/idro/tSetWriteEpcPc.vue HTML selected 동기화 필요
+const list = {
+  8: '2000',
+  10: '2800',
+  12: '3000',
+  16: '4000',
+  18: '4800',
+  20: '5000',
+  24: '6000',
+  26: '6800',
+  28: '7000',
+  30: '7800',
+  32: '8000'
+}
 
 class TCPprinter implements TypeMiddleware {
   private mTcp!: net.Socket
@@ -51,10 +53,10 @@ class TCPprinter implements TypeMiddleware {
       this.mTcp.once('data', () => null)
       const list = ['timeout', 'end', 'close', 'error', 'connect']
       for (const status of list) {
-        this.mTcp.once(status, (e) => {
+        this.mTcp.on(status, (e) => {
           if (e) {
             this.mIsConnected = false
-            const result = { ok: false, msg: `TCP STATUS [${status}]`, host, port }
+            const result = { ok: false, msg: e.message, host, port }
             resolve(result)
             return
           }
@@ -86,21 +88,24 @@ class TCPprinter implements TypeMiddleware {
 
   onBuzzer() {
     return new Promise((resolve, _reject) => {
-      this.mTcp.write(idroPacket['allStop'])
-      this.mTcp.write(idroPacket['onBuzzer'])
+      const cmd = idroPacket['onBuzzer']
+      console.log(cmd)
 
-      this.mTcp.write(idroPacket['getBuzzer'])
-      this.mTcp.once('data', (data) => {
-        const atnStatus = data.toString()
-        resolve({ ok: true, msg: atnStatus })
-      })
+      this.mTcp.write(idroPacket['allStop'])
+      this.mTcp.write(cmd)
+      return resolve({ ok: true, msg: cmd })
     })
   }
 
   offBuzzer() {
-    this.mTcp.write(idroPacket['allStop'])
-    this.mTcp.write(idroPacket['offBuzzer'])
-    return { ok: true, msg: idroPacket['offBuzzer'] }
+    return new Promise((resolve, _reject) => {
+      const cmd = idroPacket['offBuzzer']
+      console.log(cmd)
+
+      this.mTcp.write(idroPacket['allStop'])
+      this.mTcp.write(cmd)
+      return resolve({ ok: true, msg: cmd })
+    })
   }
 
   getReaderState() {
@@ -111,26 +116,54 @@ class TCPprinter implements TypeMiddleware {
       })
     })
   }
-
-  onMemoryRead(byteLength: number) {
+  onEPCWritePC(byte: number) {
     return new Promise((resolve, _reject) => {
-      const cmd = idroPacket['memoryRead'].replace('??', `${Math.floor(byteLength / 4)}`)
-      console.log(cmd)
+      if (list[byte]) {
+        const cmd = `>w 1 1 ${list[byte]}\r\n`
+        this.mTcp.write(cmd)
+
+        this.mTcp.once('data', (data) => {
+          console.log(cmd)
+          console.log(data.toString())
+
+          const status = data.toString().slice(2, 5).toUpperCase()
+          console.log(status)
+          switch (status) {
+            case 'C00':
+              return resolve({ ok: false, msg: 'EPC read로 확인 필요' })
+            case 'C01':
+              return resolve({ ok: true, msg: data.toString() })
+            case 'C03':
+              return resolve({ ok: false, msg: 'write Memory Overrun' })
+            case 'C04':
+              return resolve({ ok: false, msg: 'write Memory Locked' })
+            default:
+              return resolve({ ok: true, msg: data.toString() })
+          }
+        })
+      } else {
+        resolve({ ok: false, msg: '없는 자리수' })
+      }
+    })
+  }
+
+  onEPCReadPC() {
+    return new Promise((resolve, _reject) => {
       this.mTcp.write(idroPacket['allStop'])
-      this.mTcp.write(cmd)
+      this.mTcp.write('>r 1 1 1\r\n')
 
       this.mTcp.once('data', (data) => {
-        // const hex = data.slice(3, 3 + byteLength * 2).toString()
-        const hex = data.slice(3, -2).toString()
-        const msg = Common.hex_to_ascii(hex)
+        const raw = data.toString().slice(3, -2)
+        const msg = raw.slice(0, 4)
         const status = data.toString().slice(-4, -2)
+
         switch (status) {
-          case '00':
-            return resolve({ ok: false, msg: '정의 되지 않은 다른 Error가 발생한 경우' })
-          case '03':
-            return resolve({ ok: false, msg: 'Access 하는 Tag의 Memory 범위를 벗어난 경우' })
-          case '04':
-            return resolve({ ok: false, msg: 'Access 하는 Tag의 Memory가 Lock되어 있을 경우' })
+          // case '00':
+          //   return resolve({ ok: false, msg: '정의 되지 않은 다른 Error가 발생한 경우' })
+          // case '03':
+          //   return resolve({ ok: false, msg: 'Access 하는 Tag의 Memory 범위를 벗어난 경우' })
+          // case '04':
+          //   return resolve({ ok: false, msg: 'Access 하는 Tag의 Memory가 Lock되어 있을 경우' })
           default:
             return resolve({ ok: true, msg })
         }
@@ -138,33 +171,75 @@ class TCPprinter implements TypeMiddleware {
     })
   }
 
-  onMemoryWrite(encode: string) {
+  onMemoryRead(byteLength: number, timeout: number) {
     return new Promise((resolve, _reject) => {
-      const format = encode.length % 2 ? `${encode}0` : encode
-      const hex = Common.ascii_to_hex(format)
-      const cmd = idroPacket['notPassWriteTag'].replace('??', hex)
+      const cmd = idroPacket['memoryRead'].replace('??', `8`)
 
+      this.mTcp.write(idroPacket['allStop'])
       this.mTcp.write(cmd)
+      console.log(cmd)
+
       this.mTcp.once('data', (data) => {
-        const result = {
-          '00': '정의되지 않은 에러',
-          '01': 'success',
-          '03': 'Memory Overrun',
-          '04': 'Memory Locked'
+        const msg = data.slice(3, 3 + byteLength * 2).toString()
+        const status = data.toString().slice(2, 5).toUpperCase()
+
+        switch (status) {
+          case 'C00':
+            return resolve({ ok: false, msg: 'read 정의되지 않은 에러' })
+          case 'C03':
+            return resolve({ ok: false, msg: 'read Memory Overrun' })
+          case 'C04':
+            return resolve({ ok: false, msg: 'read Memory Locked' })
+          default:
+            return resolve({ ok: true, msg })
         }
-        const status = data.toString().slice(3, -2)
-        resolve({
-          ok: status === '01',
-          msg: result[status]
-        })
       })
 
-      // setTimeout(() => {
-      //   resolve({
-      //     ok: false,
-      //     msg: 'TIMEOUT 200ms'
-      //   })
-      // }, 200)
+      if (timeout) {
+        setTimeout(() => {
+          resolve({
+            ok: false,
+            msg: `[READ timeout ${timeout}ms]  `
+          })
+        }, timeout)
+      }
+    })
+  }
+
+  onMemoryWrite(hex: string, timeout: number) {
+    return new Promise((resolve, _reject) => {
+      const ascii = Common.hex_to_ascii(hex)
+
+      const calcHex = 2 % ascii.length ? `${hex}30` : hex
+      const pc = list[ascii.length] ? `${list[ascii.length]}` : `4000`
+      const cmd = idroPacket['writeTag'].replace('??', `${pc}${calcHex}`)
+
+      this.mTcp.write(cmd)
+      console.log(cmd)
+
+      this.mTcp.once('data', (data) => {
+        const status = data.toString().slice(2, 5).toUpperCase()
+        switch (status) {
+          case 'C00':
+            return resolve({ ok: false, msg: 'write 정의되지 않은 에러' })
+          case 'C01':
+            return resolve({ ok: true, msg: hex })
+          case 'C03':
+            return resolve({ ok: false, msg: 'write Memory Overrun' })
+          case 'C04':
+            return resolve({ ok: false, msg: 'write Memory Locked' })
+          default:
+            return resolve({ ok: true, msg: hex })
+        }
+      })
+      if (timeout) {
+        setTimeout(() => {
+          return resolve({
+            ok: false,
+            msg: `[WRITE timeout ${timeout}ms]  `
+          })
+        }, timeout)
+      }
     })
   }
 
